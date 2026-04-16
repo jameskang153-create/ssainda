@@ -368,15 +368,16 @@
 <!-- NAV -->
 <nav class="nav">
   <div class="logo">
-    <img src="https://jameskang153-create.github.io/ssainda/logo.png"
+    <img src="https://jameskang153-create.github.io/ssainda/partners-logo.png"
+         style="height:36px; width:auto;"
          onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';"
          alt="싸인다 파트너스 로고">
-    <div id="logo-fallback" style="display:flex; align-items:center; gap:6px;">
-      <div style="width:32px;height:32px;background:var(--navy);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;">S</div>
-      <div>
-        <div style="font-size:14px;font-weight:700;color:var(--navy);">ssainda</div>
-        <div style="font-size:9px;color:var(--text-muted);letter-spacing:1.5px;">PARTNERS</div>
-      </div>
+    <div id="logo-fallback" style="display:none; align-items:center; gap:6px;">
+      <img src="https://jameskang153-create.github.io/ssainda/logo.png"
+           style="height:28px; width:auto;"
+           onerror="this.style.display='none';"
+           alt="싸인다 로고">
+      <div style="font-size:14px;font-weight:700;color:var(--navy);">ssainda <span style="font-size:10px;letter-spacing:1px;">PARTNERS</span></div>
     </div>
   </div>
   <a href="#" class="nav-btn" id="shop-link">쇼핑몰 바로가기</a>
@@ -413,10 +414,24 @@
       </div>
       <div class="hero-cta-group">
         <a href="#" class="btn-primary" id="signup-link">
-          싸인다 쇼핑몰 회원가입하기
+          <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+            <img src="https://jameskang153-create.github.io/ssainda/logo.png"
+                 style="height:22px; width:auto; filter:brightness(0) invert(1);"
+                 onerror="this.style.display='none';"
+                 alt="싸인다">
+            <span>싸인다 쇼핑몰 회원가입하기</span>
+          </div>
           <span class="sub-text">이 링크로 가입 시 파트너스 추천 자동 적용</span>
         </a>
-        <a href="#" class="btn-secondary" id="shop-link-2">쇼핑몰 둘러보기 →</a>
+        <a href="#" class="btn-secondary" id="shop-link-2">
+          <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+            <img src="https://jameskang153-create.github.io/ssainda/logo.png"
+                 style="height:18px; width:auto;"
+                 onerror="this.style.display='none';"
+                 alt="싸인다">
+            <span>쇼핑몰 둘러보기 →</span>
+          </div>
+        </a>
       </div>
     </section>
 
@@ -652,7 +667,19 @@
 
 <!-- FOOTER -->
 <footer class="footer">
-  <div class="footer-logo">ssainda PARTNERS</div>
+  <div style="margin-bottom:12px;">
+    <img src="https://jameskang153-create.github.io/ssainda/partners-logo.png"
+         style="height:40px; width:auto;"
+         onerror="this.style.display='none'; document.getElementById('footer-logo-fallback').style.display='block';"
+         alt="싸인다 파트너스">
+    <div id="footer-logo-fallback" style="display:none;">
+      <img src="https://jameskang153-create.github.io/ssainda/logo.png"
+           style="height:30px; width:auto; margin-bottom:4px;"
+           onerror="this.style.display='none';"
+           alt="싸인다">
+      <div class="footer-logo">ssainda PARTNERS</div>
+    </div>
+  </div>
   <div class="footer-info">
     (주)싸인다 · 경기도 하남시 미사강변중앙로214, 레이크더타워 7층<br>
     대표번호 1544-5292 · info@ssainda.kr
