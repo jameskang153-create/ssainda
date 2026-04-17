@@ -264,10 +264,14 @@
               <input type="text" class="form-input" id="new-signup" placeholder="https://ssainda.kr/signup?ref=031">
             </div>
           </div>
-          <div class="form-row one">
+          <div class="form-row">
             <div class="form-group">
-              <label class="form-label">카카오톡 상담 링크 (오픈채팅 URL)</label>
+              <label class="form-label">카카오톡 상담 링크</label>
               <input type="text" class="form-input" id="new-kakao" placeholder="https://open.kakao.com/o/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">파트너스 설정 PIN * <span style="font-weight:400;color:var(--muted)">(4자리 숫자)</span></label>
+              <input type="text" class="form-input" id="new-pin" placeholder="예: 1234" maxlength="4">
             </div>
           </div>
           <div style="display:flex;gap:8px;margin-top:4px;">
@@ -392,6 +396,16 @@
       </div>
 
       <div class="card">
+        <div class="card-head">
+          <div class="card-title">추천 상품 배너 관리</div>
+          <button class="btn btn-navy btn-sm" onclick="saveBanners()">저장</button>
+        </div>
+        <div class="card-body">
+          <div id="banner-forms"></div>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-head"><div class="card-title">비밀번호 변경</div></div>
         <div class="card-body">
           <div class="form-row">
@@ -441,10 +455,14 @@
         <input type="text" class="form-input" id="edit-signup">
       </div>
     </div>
-    <div class="form-row one">
+    <div class="form-row">
       <div class="form-group">
         <label class="form-label">카카오톡 상담 링크</label>
         <input type="text" class="form-input" id="edit-kakao" placeholder="https://open.kakao.com/o/...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">설정 PIN (4자리)</label>
+        <input type="text" class="form-input" id="edit-pin" placeholder="예: 1234" maxlength="4">
       </div>
     </div>
     <div class="form-row one">
@@ -468,6 +486,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script>
 /* ════ Firebase 초기화 ════ */
 var firebaseConfig = {
@@ -479,7 +498,8 @@ var firebaseConfig = {
   appId: "1:778990269272:web:163cc59f8445b864972b2d"
 };
 firebase.initializeApp(firebaseConfig);
-var db = firebase.firestore();
+var db      = firebase.firestore();
+var storage = firebase.storage();
 
 /* ════ 설정값 ════ */
 var ADMIN_PW_KEY = 'ssainda_admin_pw';
@@ -524,6 +544,7 @@ function initAdmin() {
   if (cfg.shop)    document.getElementById('cfg-shop').value    = cfg.shop;
   if (cfg.signup)  document.getElementById('cfg-signup').value  = cfg.signup;
   if (cfg.landing) document.getElementById('cfg-landing').value = cfg.landing;
+  loadBanners();
 
   /* 파트너스 실시간 리스너 */
   db.collection('partners').orderBy('addedAt').onSnapshot(function(snap) {
@@ -586,6 +607,8 @@ function addPartner() {
   if (!name)  { showToast('이름을 입력하세요'); return; }
   if (!phone) { showToast('연락처를 입력하세요'); return; }
   var code = document.getElementById('new-code').value;
+  var pin = document.getElementById('new-pin').value.trim();
+  if (!pin || pin.length < 4) { showToast('PIN 4자리를 입력하세요'); return; }
   db.collection('partners').doc(code).set({
     code:     code,
     name:     name,
@@ -593,6 +616,7 @@ function addPartner() {
     shopUrl:  document.getElementById('new-shop').value.trim()   || 'https://ssainda.kr',
     signupUrl:document.getElementById('new-signup').value.trim() || 'https://ssainda.kr/signup?ref='+code,
     kakaoUrl: document.getElementById('new-kakao').value.trim(),
+    pin:      pin,
     status:   'active',
     addedAt:  new Date().toISOString().slice(0,10)
   }).then(function(){
@@ -602,7 +626,7 @@ function addPartner() {
 }
 
 function clearAddForm() {
-  ['new-name','new-phone','new-kakao'].forEach(function(id){ document.getElementById(id).value=''; });
+  ['new-name','new-phone','new-kakao','new-pin'].forEach(function(id){ document.getElementById(id).value=''; });
   setNextCode();
 }
 
@@ -681,7 +705,8 @@ function openEdit(code) {
   document.getElementById('edit-shop').value   = p.shopUrl   || '';
   document.getElementById('edit-signup').value = p.signupUrl || '';
   document.getElementById('edit-kakao').value  = p.kakaoUrl  || '';
-  document.getElementById('edit-status').value = p.status || 'active';
+  document.getElementById('edit-pin').value    = p.pin       || '';
+  document.getElementById('edit-status').value = p.status    || 'active';
   document.getElementById('edit-modal').classList.add('open');
 }
 function closeModal() { document.getElementById('edit-modal').classList.remove('open'); }
@@ -693,6 +718,7 @@ function saveEdit() {
     shopUrl:   document.getElementById('edit-shop').value.trim(),
     signupUrl: document.getElementById('edit-signup').value.trim(),
     kakaoUrl:  document.getElementById('edit-kakao').value.trim(),
+    pin:       document.getElementById('edit-pin').value.trim(),
     status:    document.getElementById('edit-status').value
   }).then(function(){
     closeModal();
@@ -784,6 +810,59 @@ function exportPartners() {
 function copyExport() {
   navigator.clipboard.writeText(document.getElementById('export-code').textContent)
     .then(function(){ showToast('복사됐습니다'); });
+}
+
+/* ════ 배너 관리 ════ */
+var BANNER_COLORS = ['default','yellow','green','blue'];
+var BANNER_COLOR_LABELS = {default:'기본(남색)',yellow:'노랑',green:'초록',blue:'파랑'};
+var bannersCache = [{},{},{},{}];
+
+function loadBanners() {
+  db.collection('banners').orderBy('order').get().then(function(snap) {
+    snap.docs.forEach(function(d) {
+      var idx = (d.data().order || 1) - 1;
+      if (idx >= 0 && idx < 4) bannersCache[idx] = d.data();
+    });
+    renderBannerForms();
+  }).catch(function() { renderBannerForms(); });
+}
+
+function renderBannerForms() {
+  var labels = ['베스트 상품 1','베스트 상품 2','인기 상품 3','신규 상품 4'];
+  document.getElementById('banner-forms').innerHTML = labels.map(function(label, i) {
+    var b = bannersCache[i] || {};
+    return '<div style="background:var(--bg);border-radius:var(--r8);padding:14px;margin-bottom:12px;">' +
+      '<div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px;">배너 ' + (i+1) + '</div>' +
+      '<div class="form-row three">' +
+        '<div class="form-group"><label class="form-label">상품명</label>' +
+          '<input class="form-input" id="b-name-'+i+'" value="'+(b.name||label)+'" placeholder="상품명"></div>' +
+        '<div class="form-group"><label class="form-label">가격</label>' +
+          '<input class="form-input" id="b-price-'+i+'" value="'+(b.price||'₩00,000')+'" placeholder="₩00,000"></div>' +
+        '<div class="form-group"><label class="form-label">색상</label>' +
+          '<select class="form-input" id="b-color-'+i+'">' +
+            BANNER_COLORS.map(function(c){ return '<option value="'+c+'"'+(b.color===c?' selected':'')+'>'+BANNER_COLOR_LABELS[c]+'</option>'; }).join('') +
+          '</select></div>' +
+      '</div>' +
+      '<div class="form-row one"><div class="form-group"><label class="form-label">링크 URL</label>' +
+        '<input class="form-input" id="b-link-'+i+'" value="'+(b.link||'https://ssainda.kr')+'" placeholder="https://ssainda.kr"></div></div>' +
+    '</div>';
+  }).join('');
+}
+
+function saveBanners() {
+  var batch = db.batch();
+  [0,1,2,3].forEach(function(i) {
+    var ref = db.collection('banners').doc('banner-'+(i+1));
+    batch.set(ref, {
+      order: i+1,
+      name:  document.getElementById('b-name-'+i).value.trim(),
+      price: document.getElementById('b-price-'+i).value.trim(),
+      color: document.getElementById('b-color-'+i).value,
+      link:  document.getElementById('b-link-'+i).value.trim()
+    });
+  });
+  batch.commit().then(function(){ showToast('배너가 저장됐습니다'); })
+    .catch(function(e){ showToast('오류: '+e.message); });
 }
 
 /* ════ 설정 ════ */

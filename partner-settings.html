@@ -80,9 +80,11 @@
     </div>
     <div class="box-title">파트너스 설정</div>
     <div class="box-sub">파트너스 코드를 입력하면<br>내 설정을 수정할 수 있어요</div>
-    <input type="text" class="input" id="code-input" placeholder="파트너스 코드 (예: 001)"
+    <input type="text" class="input" id="code-input" placeholder="파트너스 코드 (예: 001)" maxlength="3"
+           onkeydown="if(event.key==='Enter')document.getElementById('pin-input').focus()">
+    <input type="password" class="input" id="pin-input" placeholder="PIN 번호 (4자리)" maxlength="4"
            onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="btn-main" onclick="doLogin()">확인</button>
+    <button class="btn-main" onclick="doLogin()">로그인</button>
     <div class="err" id="login-err">파트너스 코드를 찾을 수 없습니다</div>
   </div>
 
@@ -125,6 +127,22 @@
         </div>
       </div>
 
+      <!-- 프로필 사진 -->
+      <div class="field-group">
+        <label class="field-label">프로필 사진</label>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:4px;">
+          <div id="photo-preview" style="width:64px;height:64px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:700;overflow:hidden;flex-shrink:0;"></div>
+          <div style="flex:1;">
+            <input type="file" id="photo-file" accept="image/*" style="display:none;" onchange="previewAndUpload()">
+            <button onclick="document.getElementById('photo-file').click()"
+              style="padding:9px 16px;background:var(--navy-light);border:1.5px solid var(--navy-mid);border-radius:var(--r8);font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
+              사진 선택
+            </button>
+            <div id="photo-status" style="font-size:11px;color:var(--muted);margin-top:6px;">JPG, PNG (최대 2MB)</div>
+          </div>
+        </div>
+      </div>
+
       <!-- 이름 (읽기전용) -->
       <div class="field-group">
         <label class="field-label">이름</label>
@@ -152,6 +170,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script>
 var firebaseConfig = {
   apiKey: "AIzaSyBkmtCmg0miiTmAq3blP-_5fa7rBB5Suto",
@@ -162,7 +181,8 @@ var firebaseConfig = {
   appId: "1:778990269272:web:163cc59f8445b864972b2d"
 };
 firebase.initializeApp(firebaseConfig);
-var db = firebase.firestore();
+var db      = firebase.firestore();
+var storage = firebase.storage();
 
 var LANDING_BASE = 'https://jameskang153-create.github.io/ssainda/';
 var currentPartner = null;
@@ -176,9 +196,11 @@ if (urlCode) {
 
 function doLogin() {
   var code = document.getElementById('code-input').value.trim();
-  if (!code) return;
+  var pin  = document.getElementById('pin-input').value.trim();
+  if (!code || !pin) { document.getElementById('login-err').style.display = 'block'; return; }
   db.collection('partners').doc(code).get().then(function(doc) {
-    if (!doc.exists) {
+    if (!doc.exists || doc.data().pin !== pin) {
+      document.getElementById('login-err').textContent = '코드 또는 PIN이 올바르지 않습니다';
       document.getElementById('login-err').style.display = 'block';
       return;
     }
@@ -194,7 +216,22 @@ function showSettings() {
   document.getElementById('login-box').style.display    = 'none';
   document.getElementById('settings-box').style.display = 'block';
 
-  document.getElementById('s-avatar').textContent = p.name[0];
+  /* 아바타: 사진 있으면 이미지, 없으면 이니셜 */
+  var avatarEl = document.getElementById('s-avatar');
+  if (p.photoUrl) {
+    avatarEl.innerHTML = '<img src="'+p.photoUrl+'" style="width:100%;height:100%;object-fit:cover;">';
+  } else {
+    avatarEl.textContent = p.name[0];
+  }
+
+  /* 프로필 미리보기 */
+  var preview = document.getElementById('photo-preview');
+  if (p.photoUrl) {
+    preview.innerHTML = '<img src="'+p.photoUrl+'" style="width:100%;height:100%;object-fit:cover;">';
+  } else {
+    preview.textContent = p.name[0];
+  }
+
   document.getElementById('s-name').textContent   = p.name + ' 파트너스';
   document.getElementById('s-code').textContent   = '코드: ' + p.code;
   document.getElementById('name-input').value     = p.name;
@@ -243,6 +280,37 @@ function loadSeminarRegs() {
         '</div>';
       }).join('');
     });
+}
+
+function previewAndUpload() {
+  var file = document.getElementById('photo-file').files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { alert('2MB 이하 이미지만 업로드 가능합니다'); return; }
+
+  /* 미리보기 */
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var preview = document.getElementById('photo-preview');
+    preview.innerHTML = '<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;">';
+  };
+  reader.readAsDataURL(file);
+
+  /* Firebase Storage 업로드 */
+  document.getElementById('photo-status').textContent = '업로드 중...';
+  var ref = storage.ref('partners/' + currentPartner.code + '/avatar.jpg');
+  ref.put(file).then(function() {
+    return ref.getDownloadURL();
+  }).then(function(url) {
+    return db.collection('partners').doc(currentPartner.code).update({ photoUrl: url }).then(function() {
+      currentPartner.photoUrl = url;
+      document.getElementById('photo-status').textContent = '✓ 업로드 완료';
+      /* 상단 아바타도 업데이트 */
+      document.getElementById('s-avatar').innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;">';
+      showToast('프로필 사진이 저장됐습니다');
+    });
+  }).catch(function(e) {
+    document.getElementById('photo-status').textContent = '업로드 실패: ' + e.message;
+  });
 }
 
 function saveSettings() {

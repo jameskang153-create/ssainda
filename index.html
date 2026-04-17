@@ -749,7 +749,7 @@
 
       <div class="side-banner-title">추천 상품</div>
 
-      <div class="banner-card">
+      <div class="banner-card" id="banner-card-1">
         <div class="banner-img">상품<br>이미지 1</div>
         <div class="banner-info">
           <div class="banner-name">베스트 상품 1</div>
@@ -758,7 +758,7 @@
         </div>
       </div>
 
-      <div class="banner-card">
+      <div class="banner-card" id="banner-card-2">
         <div class="banner-img yellow">상품<br>이미지 2</div>
         <div class="banner-info">
           <div class="banner-name">베스트 상품 2</div>
@@ -767,7 +767,7 @@
         </div>
       </div>
 
-      <div class="banner-card">
+      <div class="banner-card" id="banner-card-3">
         <div class="banner-img green">상품<br>이미지 3</div>
         <div class="banner-info">
           <div class="banner-name">인기 상품 3</div>
@@ -776,7 +776,7 @@
         </div>
       </div>
 
-      <div class="banner-card">
+      <div class="banner-card" id="banner-card-4">
         <div class="banner-img blue">상품<br>이미지 4</div>
         <div class="banner-info">
           <div class="banner-name">신규 상품 4</div>
@@ -841,6 +841,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script>
 var firebaseConfig = {
   apiKey: "AIzaSyBkmtCmg0miiTmAq3blP-_5fa7rBB5Suto",
@@ -890,8 +891,40 @@ function loadPartner() {
         if (el) { el.href = p.kakaoUrl; el.style.display = ''; }
       });
     }
+
+    /* 파트너 프로필 사진 */
+    if (p.photoUrl) {
+      var photoStyle = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+      ['partner-avatar','side-avatar'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.innerHTML = '<img src="'+p.photoUrl+'" style="'+photoStyle+'">'; }
+      });
+    }
   });
 }
+
+/* ── 배너 Firestore 로드 ── */
+function loadBanners() {
+  db.collection('banners').orderBy('order').get().then(function(snap) {
+    if (snap.empty) return;
+    var colorMap = { default:'', yellow:' yellow', green:' green', blue:' blue' };
+    snap.docs.forEach(function(d) {
+      var b   = d.data();
+      var idx = b.order;
+      var card = document.getElementById('banner-card-'+idx);
+      if (!card) return;
+      var color = colorMap[b.color] || '';
+      card.querySelector('.banner-name').textContent  = b.name  || '';
+      card.querySelector('.banner-price').textContent = b.price || '';
+      var imgEl = card.querySelector('.banner-img');
+      imgEl.className = 'banner-img' + color;
+      var btnEl = card.querySelector('.banner-btn');
+      btnEl.className = 'banner-btn' + color;
+      if (b.link) btnEl.href = b.link;
+    });
+  });
+}
+loadBanners();
 
 /* ── 문의 폼 제출 → Firestore ── */
 function submitForm() {
