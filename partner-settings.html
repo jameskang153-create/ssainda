@@ -133,6 +133,16 @@
       </div>
 
       <button class="save-btn" id="save-btn" onclick="saveSettings()">저장하기</button>
+
+      <hr class="divider">
+
+      <!-- 설명회 신청자 목록 -->
+      <div style="margin-top:4px;">
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px;">📋 설명회 신청자 목록</div>
+        <div id="seminar-regs-wrap">
+          <div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;">불러오는 중...</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -194,6 +204,7 @@ function showSettings() {
   document.getElementById('my-link-text').textContent = link;
 
   previewKakao();
+  loadSeminarRegs();
 }
 
 function doLogout() {
@@ -208,6 +219,30 @@ function previewKakao() {
   var val     = document.getElementById('kakao-input').value.trim();
   var preview = document.getElementById('kakao-preview');
   preview.style.display = val ? 'flex' : 'none';
+}
+
+function loadSeminarRegs() {
+  db.collection('seminar_registrations')
+    .where('partnerCode', '==', currentPartner.code)
+    .orderBy('timestamp', 'desc')
+    .onSnapshot(function(snap) {
+      var wrap = document.getElementById('seminar-regs-wrap');
+      if (snap.empty) {
+        wrap.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;">아직 신청자가 없습니다</div>';
+        return;
+      }
+      wrap.innerHTML = snap.docs.map(function(d) {
+        var r  = d.data();
+        var ts = r.timestamp && r.timestamp.toDate ? r.timestamp.toDate().toLocaleDateString('ko-KR') : '-';
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg);border-radius:var(--r8);margin-bottom:6px;">' +
+          '<div>' +
+            '<div style="font-size:13px;font-weight:700;color:var(--text);">' + r.name + '</div>' +
+            '<div style="font-size:11px;color:var(--muted);margin-top:2px;">' + r.phone + ' · ' + (r.seminarDate||'-') + '</div>' +
+          '</div>' +
+          '<div style="font-size:10px;color:var(--muted);">' + ts + '</div>' +
+        '</div>';
+      }).join('');
+    });
 }
 
 function saveSettings() {

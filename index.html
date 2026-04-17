@@ -350,6 +350,67 @@
   .colorbar { height:4px; display:flex; }
   .colorbar span { flex:1; }
 
+  /* SEMINAR */
+  .seminar-list { display:flex; flex-direction:column; gap:10px; }
+  .seminar-card {
+    display:flex; align-items:center; justify-content:space-between;
+    background:white; border:1.5px solid var(--border);
+    border-radius:var(--radius-md); padding:14px 16px;
+    transition:all 0.2s;
+  }
+  .seminar-card:hover { border-color:var(--navy); box-shadow:0 2px 12px rgba(30,34,120,0.1); }
+  .seminar-card.past { opacity:0.45; pointer-events:none; }
+  .seminar-date-wrap { display:flex; align-items:center; gap:12px; }
+  .seminar-cal {
+    width:44px; height:44px; border-radius:var(--radius-sm);
+    background:var(--navy); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .seminar-cal .month { font-size:9px; font-weight:700; color:rgba(255,255,255,0.7); letter-spacing:1px; }
+  .seminar-cal .day   { font-size:18px; font-weight:700; color:white; line-height:1; }
+  .seminar-info .s-date  { font-size:13px; font-weight:700; color:var(--text-primary); }
+  .seminar-info .s-time  { font-size:11px; color:var(--text-muted); margin-top:2px; }
+  .seminar-badge {
+    font-size:10px; font-weight:700; padding:3px 8px;
+    border-radius:10px; margin-top:4px; display:inline-block;
+  }
+  .seminar-badge.open   { background:var(--green-light); color:var(--green); }
+  .seminar-badge.closed { background:var(--red-light);   color:var(--red); }
+  .seminar-apply-btn {
+    font-size:12px; font-weight:700; color:white;
+    background:var(--navy); border:none; padding:9px 16px;
+    border-radius:var(--radius-sm); cursor:pointer;
+    font-family:'Noto Sans KR',sans-serif; transition:all 0.2s;
+    white-space:nowrap; flex-shrink:0;
+  }
+  .seminar-apply-btn:hover { background:#2d35a0; }
+  .seminar-notice {
+    margin-top:12px; padding:11px 14px;
+    background:var(--yellow-light); border:1px solid #ffe066;
+    border-radius:var(--radius-sm); font-size:11px; color:#7a5c00; line-height:1.6;
+  }
+
+  /* MODAL */
+  .modal-bg {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.45); z-index:200;
+    align-items:flex-end; justify-content:center;
+  }
+  .modal-bg.open { display:flex; }
+  .modal-sheet {
+    background:white; border-radius:20px 20px 0 0;
+    padding:28px 20px 36px; width:100%; max-width:560px;
+    animation:slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .modal-title { font-size:16px; font-weight:700; color:var(--text-primary); margin-bottom:4px; }
+  .modal-sub   { font-size:12px; color:var(--text-muted); margin-bottom:20px; line-height:1.6; }
+  .modal-close {
+    position:absolute; top:16px; right:16px;
+    background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-muted);
+  }
+  .modal-sheet { position:relative; }
+
   /* FADE */
   .fade-up { opacity:0; transform:translateY(16px); transition:opacity 0.5s ease, transform 0.5s ease; }
   .fade-up.visible { opacity:1; transform:translateY(0); }
@@ -593,6 +654,18 @@
       </div>
     </section>
 
+    <!-- 설명회 -->
+    <section class="section fade-up">
+      <div class="section-tag">오프라인 설명회</div>
+      <h2 class="section-title">직접 만나서<br>자세히 알려드려요</h2>
+      <p class="section-sub">매월 토요일 오후 2시 · 서울 강남 논현동<br>신청자에 한해 상세 위치 개별 안내드립니다</p>
+      <div class="seminar-list" id="seminar-list"></div>
+      <div class="seminar-notice">
+        📍 장소는 신청하신 분께 개별 안내드립니다<br>
+        📞 신청 후 담당 파트너스가 직접 연락드립니다
+      </div>
+    </section>
+
     <!-- FAQ -->
     <section class="section fade-up">
       <div class="section-tag">FAQ</div>
@@ -720,6 +793,31 @@
 
 </div><!-- /main-layout -->
 
+<!-- 설명회 신청 모달 -->
+<div class="modal-bg" id="seminar-modal">
+  <div class="modal-sheet">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-title" id="modal-seminar-title">설명회 신청</div>
+    <div class="modal-sub">신청 후 담당 파트너스가 상세 위치 안내드립니다</div>
+    <div id="seminar-form">
+      <div class="form-group">
+        <label class="form-label">이름</label>
+        <input type="text" class="form-input" id="seminar-name" placeholder="홍길동">
+      </div>
+      <div class="form-group" style="margin-top:10px;">
+        <label class="form-label">연락처</label>
+        <input type="tel" class="form-input" id="seminar-phone" placeholder="010-0000-0000">
+      </div>
+      <button class="btn-submit" style="margin-top:14px;" onclick="submitSeminar()">신청하기</button>
+    </div>
+    <div id="seminar-success" style="display:none;text-align:center;padding:20px 0;">
+      <div style="font-size:36px;margin-bottom:10px;">✅</div>
+      <div style="font-size:15px;font-weight:700;color:var(--green);margin-bottom:6px;">신청 완료!</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.7;">담당 파트너스가 곧 연락드려<br>상세 위치를 안내해 드립니다</div>
+    </div>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer class="footer">
   <div style="margin-bottom:12px;">
@@ -825,6 +923,77 @@ function submitForm() {
 }
 
 loadPartner();
+
+/* ── 설명회 일정 ── */
+var SEMINARS = [
+  { id:'s0502', month:'5월', day:'2',  label:'5월 2일 (토)', time:'오후 2시 · 서울 강남 논현동', date: new Date('2025-05-02') },
+  { id:'s0509', month:'5월', day:'9',  label:'5월 9일 (토)', time:'오후 2시 · 서울 강남 논현동', date: new Date('2025-05-09') },
+  { id:'s0516', month:'5월', day:'16', label:'5월 16일 (토)', time:'오후 2시 · 서울 강남 논현동', date: new Date('2025-05-16') },
+  { id:'s0530', month:'5월', day:'30', label:'5월 30일 (토)', time:'오후 2시 · 서울 강남 논현동', date: new Date('2025-05-30') }
+];
+var selectedSeminar = null;
+
+function renderSeminars() {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var html = SEMINARS.map(function(s) {
+    var past = s.date < today;
+    return '<div class="seminar-card' + (past ? ' past' : '') + '">' +
+      '<div class="seminar-date-wrap">' +
+        '<div class="seminar-cal"><div class="month">' + s.month + '</div><div class="day">' + s.day + '</div></div>' +
+        '<div class="seminar-info">' +
+          '<div class="s-date">' + s.label + '</div>' +
+          '<div class="s-time">' + s.time + '</div>' +
+          '<span class="seminar-badge ' + (past ? 'closed' : 'open') + '">' + (past ? '마감' : '신청 가능') + '</span>' +
+        '</div>' +
+      '</div>' +
+      (!past ? '<button class="seminar-apply-btn" onclick="openSeminarModal(\'' + s.id + '\')">신청하기</button>' : '') +
+    '</div>';
+  }).join('');
+  document.getElementById('seminar-list').innerHTML = html;
+}
+
+function openSeminarModal(id) {
+  selectedSeminar = SEMINARS.find(function(s){ return s.id === id; });
+  document.getElementById('modal-seminar-title').textContent = selectedSeminar.label + ' 설명회 신청';
+  document.getElementById('seminar-name').value  = '';
+  document.getElementById('seminar-phone').value = '';
+  document.getElementById('seminar-form').style.display    = 'block';
+  document.getElementById('seminar-success').style.display = 'none';
+  document.getElementById('seminar-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('seminar-modal').classList.remove('open');
+}
+
+function submitSeminar() {
+  var name  = document.getElementById('seminar-name').value.trim();
+  var phone = document.getElementById('seminar-phone').value.trim();
+  if (!name)  { alert('이름을 입력해주세요'); return; }
+  if (!phone) { alert('연락처를 입력해주세요'); return; }
+
+  var btn = document.querySelector('#seminar-form .btn-submit');
+  btn.disabled = true; btn.textContent = '신청 중...';
+
+  db.collection('seminar_registrations').add({
+    seminarId:   selectedSeminar.id,
+    seminarDate: selectedSeminar.label,
+    name:        name,
+    phone:       phone,
+    partnerCode: partnerCode || '직접접속',
+    partnerName: partnerData ? partnerData.name : '없음',
+    timestamp:   firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    document.getElementById('seminar-form').style.display    = 'none';
+    document.getElementById('seminar-success').style.display = 'block';
+    btn.disabled = false; btn.textContent = '신청하기';
+  }).catch(function() {
+    alert('오류가 발생했습니다. 다시 시도해주세요.');
+    btn.disabled = false; btn.textContent = '신청하기';
+  });
+}
+
+renderSeminars();
 
 /* ── 스크롤 fade-in ── */
 var observer = new IntersectionObserver(function(entries) {

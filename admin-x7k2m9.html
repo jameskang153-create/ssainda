@@ -173,6 +173,7 @@
       <div class="tab active" onclick="switchTab('dashboard')">대시보드</div>
       <div class="tab" onclick="switchTab('partners')">파트너스 관리</div>
       <div class="tab" onclick="switchTab('inquiries')">문의 현황</div>
+      <div class="tab" onclick="switchTab('seminars')">설명회 신청</div>
       <div class="tab" onclick="switchTab('settings')">설정</div>
     </div>
 
@@ -332,6 +333,39 @@
       </div>
     </div>
 
+    <!-- 설명회 신청 탭 -->
+    <div class="tab-content" id="tab-seminars">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">설명회 신청 현황 <span id="seminar-count" style="font-size:12px;color:var(--muted);font-weight:400;"></span></div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select id="filter-seminar-date" onchange="renderSeminarRegs()"
+              style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r8);font-size:12px;font-family:'Noto Sans KR',sans-serif;outline:none;">
+              <option value="">전체 일정</option>
+              <option value="s0502">5월 2일</option>
+              <option value="s0509">5월 9일</option>
+              <option value="s0516">5월 16일</option>
+              <option value="s0530">5월 30일</option>
+            </select>
+            <select id="filter-seminar-partner" onchange="renderSeminarRegs()"
+              style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r8);font-size:12px;font-family:'Noto Sans KR',sans-serif;outline:none;">
+              <option value="">전체 파트너스</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;overflow-x:auto;">
+          <table class="tbl">
+            <thead>
+              <tr><th>신청일시</th><th>이름</th><th>연락처</th><th>신청 일정</th><th>담당 파트너스</th><th>코드</th></tr>
+            </thead>
+            <tbody id="seminar-regs-body">
+              <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">불러오는 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- 설정 탭 -->
     <div class="tab-content" id="tab-settings">
       <div class="card">
@@ -453,8 +487,9 @@ var CONFIG_KEY   = 'ssainda_config';
 var LANDING_BASE = 'https://jameskang153-create.github.io/ssainda/';
 
 /* ════ 캐시 ════ */
-var partnersCache  = [];
-var inquiriesCache = [];
+var partnersCache    = [];
+var inquiriesCache   = [];
+var seminarRegsCache = [];
 
 /* ════ 로컬 유틸 ════ */
 function getPw()          { return localStorage.getItem(ADMIN_PW_KEY) || 'asdf1234'; }
@@ -505,12 +540,19 @@ function initAdmin() {
     renderInquiries();
     updateStats();
   });
+
+  /* 설명회 신청 실시간 리스너 */
+  db.collection('seminar_registrations').orderBy('timestamp','desc').onSnapshot(function(snap) {
+    seminarRegsCache = snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+    renderSeminarRegs();
+    updateStats();
+  });
 }
 
 /* ════ 탭 전환 ════ */
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(function(t,i){
-    t.classList.toggle('active', ['dashboard','partners','inquiries','settings'][i] === name);
+    t.classList.toggle('active', ['dashboard','partners','inquiries','seminars','settings'][i] === name);
   });
   document.querySelectorAll('.tab-content').forEach(function(c){
     c.classList.toggle('active', c.id === 'tab-'+name);
@@ -686,6 +728,48 @@ function renderInquiries() {
       '<td><span class="badge badge-yellow">' + (channelMap[i.channel]||i.channel||'-') + '</span></td>' +
       '<td>' + (i.partnerName||'-') + '</td>' +
       '<td><span class="badge badge-navy">' + (i.partnerCode||'-') + '</span></td>' +
+      '</tr>';
+  }).join('');
+}
+
+/* ════ 설명회 신청 렌더 ════ */
+function renderSeminarRegs() {
+  var dateFilter    = document.getElementById('filter-seminar-date').value;
+  var partnerFilter = document.getElementById('filter-seminar-partner').value;
+
+  var data = seminarRegsCache.filter(function(r) {
+    if (dateFilter    && r.seminarId   !== dateFilter)    return false;
+    if (partnerFilter && r.partnerCode !== partnerFilter) return false;
+    return true;
+  });
+
+  /* 파트너 필터 옵션 동기화 */
+  var sel = document.getElementById('filter-seminar-partner');
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">전체 파트너스</option>';
+  partnersCache.forEach(function(p) {
+    var o = document.createElement('option');
+    o.value = p.code; o.textContent = p.name + '(' + p.code + ')';
+    sel.appendChild(o);
+  });
+  sel.value = cur;
+
+  document.getElementById('seminar-count').textContent = '(' + data.length + '건)';
+
+  var tbody = document.getElementById('seminar-regs-body');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">신청 내역이 없습니다</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(function(r) {
+    var ts = r.timestamp && r.timestamp.toDate ? r.timestamp.toDate().toLocaleString('ko-KR') : '-';
+    return '<tr>' +
+      '<td style="color:var(--muted)">' + ts + '</td>' +
+      '<td><strong>' + (r.name||'-') + '</strong></td>' +
+      '<td>' + (r.phone||'-') + '</td>' +
+      '<td><span class="badge badge-navy">' + (r.seminarDate||'-') + '</span></td>' +
+      '<td>' + (r.partnerName||'-') + '</td>' +
+      '<td><span class="badge badge-green">' + (r.partnerCode||'-') + '</span></td>' +
       '</tr>';
   }).join('');
 }
