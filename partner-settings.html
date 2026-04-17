@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>파트너스 설정 — 싸인다</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:#1E2278; --navy-light:#EEEFFE; --navy-mid:#C8CAED;
+    --green:#39B54A; --green-light:#EDFAF0;
+    --red:#ED1C24; --red-light:#FEF0F0;
+    --yellow:#FEE500;
+    --text:#1A1A3E; --text2:#555; --muted:#999;
+    --border:#E8E8F0; --bg:#F4F5FB; --white:#fff;
+    --r8:8px; --r12:12px; --r16:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+
+  .wrap{width:100%;max-width:440px;}
+
+  /* 로그인 */
+  .login-box{background:white;border-radius:var(--r16);border:1px solid var(--border);padding:36px 28px;box-shadow:0 4px 24px rgba(30,34,120,0.08);text-align:center;}
+  .logo-area{margin-bottom:20px;}
+  .logo-area img{height:40px;}
+  .box-title{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+  .box-sub{font-size:12px;color:var(--muted);margin-bottom:24px;line-height:1.6;}
+  .input{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:var(--r8);font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;margin-bottom:10px;transition:border-color 0.2s;}
+  .input:focus{border-color:var(--navy);}
+  .btn-main{width:100%;background:var(--navy);color:white;padding:14px;border:none;border-radius:var(--r8);font-size:14px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:opacity 0.2s;}
+  .btn-main:hover{opacity:0.9;}
+  .err{font-size:12px;color:var(--red);margin-top:8px;display:none;}
+
+  /* 설정 화면 */
+  .settings-box{display:none;}
+  .topbar{background:var(--navy);border-radius:var(--r12) var(--r12) 0 0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
+  .topbar-info{display:flex;align-items:center;gap:10px;}
+  .avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;}
+  .topbar-name{font-size:14px;font-weight:700;color:white;}
+  .topbar-code{font-size:11px;color:rgba(255,255,255,0.6);}
+  .logout-btn{font-size:11px;color:white;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);padding:5px 12px;border-radius:14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+
+  .settings-body{background:white;border-radius:0 0 var(--r16) var(--r16);border:1px solid var(--border);border-top:none;padding:28px;}
+
+  .field-group{margin-bottom:16px;}
+  .field-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;display:block;}
+  .field-input{width:100%;padding:12px 13px;border:1.5px solid var(--border);border-radius:var(--r8);font-size:13px;font-family:'Noto Sans KR',sans-serif;color:var(--text);outline:none;transition:border-color 0.2s;}
+  .field-input:focus{border-color:var(--navy);}
+  .field-input:read-only{background:var(--bg);color:var(--muted);}
+  .field-hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+
+  .kakao-preview{display:none;margin-top:8px;padding:10px 14px;background:#FFFDE7;border:1px solid #F5DC00;border-radius:var(--r8);font-size:12px;color:#5a3e00;align-items:center;gap:8px;}
+  .kakao-preview svg{flex-shrink:0;}
+
+  .divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+
+  .my-link-box{background:var(--navy-light);border:1px solid var(--navy-mid);border-radius:var(--r8);padding:14px;}
+  .my-link-label{font-size:11px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+  .my-link-row{display:flex;align-items:center;gap:8px;}
+  .my-link-text{font-size:12px;color:var(--navy);font-family:monospace;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .copy-btn{font-size:11px;color:white;background:var(--navy);border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;}
+
+  .save-btn{width:100%;background:var(--navy);color:white;padding:15px;border:none;border-radius:var(--r8);font-size:14px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-top:20px;transition:all 0.2s;box-shadow:0 4px 16px rgba(30,34,120,0.2);}
+  .save-btn:hover{opacity:0.9;transform:translateY(-1px);}
+  .save-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:white;padding:12px 24px;border-radius:var(--r8);font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 로그인 -->
+  <div class="login-box" id="login-box">
+    <div class="logo-area">
+      <img src="https://jameskang153-create.github.io/ssainda/partners-logo.png"
+           onerror="this.style.display='none'" alt="싸인다 파트너스">
+    </div>
+    <div class="box-title">파트너스 설정</div>
+    <div class="box-sub">파트너스 코드를 입력하면<br>내 설정을 수정할 수 있어요</div>
+    <input type="text" class="input" id="code-input" placeholder="파트너스 코드 (예: 001)"
+           onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-main" onclick="doLogin()">확인</button>
+    <div class="err" id="login-err">파트너스 코드를 찾을 수 없습니다</div>
+  </div>
+
+  <!-- 설정 화면 -->
+  <div class="settings-box" id="settings-box">
+    <div class="topbar">
+      <div class="topbar-info">
+        <div class="avatar" id="s-avatar">?</div>
+        <div>
+          <div class="topbar-name" id="s-name">-</div>
+          <div class="topbar-code" id="s-code">코드: -</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+    </div>
+
+    <div class="settings-body">
+
+      <!-- 내 파트너스 링크 -->
+      <div class="my-link-box">
+        <div class="my-link-label">내 파트너스 링크</div>
+        <div class="my-link-row">
+          <span class="my-link-text" id="my-link-text">-</span>
+          <button class="copy-btn" onclick="copyMyLink()">복사</button>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- 카카오톡 상담 링크 -->
+      <div class="field-group">
+        <label class="field-label">카카오톡 실시간 상담 링크</label>
+        <input type="url" class="field-input" id="kakao-input"
+               placeholder="https://open.kakao.com/o/..."
+               oninput="previewKakao()">
+        <div class="field-hint">카카오 오픈채팅 링크를 입력하면 방문자에게 상담 버튼이 표시됩니다</div>
+        <div class="kakao-preview" id="kakao-preview">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#3A1D1D"><path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.611 1.567 4.906 3.938 6.32L5 21l4.563-2.438A11.3 11.3 0 0 0 12 18c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"/></svg>
+          이 링크로 카카오톡 상담 버튼이 연결됩니다
+        </div>
+      </div>
+
+      <!-- 이름 (읽기전용) -->
+      <div class="field-group">
+        <label class="field-label">이름</label>
+        <input type="text" class="field-input" id="name-input" readonly>
+        <div class="field-hint">이름 변경은 관리자에게 문의하세요</div>
+      </div>
+
+      <button class="save-btn" id="save-btn" onclick="saveSettings()">저장하기</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyBkmtCmg0miiTmAq3blP-_5fa7rBB5Suto",
+  authDomain: "ssainda-partners.firebaseapp.com",
+  projectId: "ssainda-partners",
+  storageBucket: "ssainda-partners.firebasestorage.app",
+  messagingSenderId: "778990269272",
+  appId: "1:778990269272:web:163cc59f8445b864972b2d"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+var LANDING_BASE = 'https://jameskang153-create.github.io/ssainda/';
+var currentPartner = null;
+
+/* URL에 코드가 있으면 자동 로그인 */
+var urlCode = new URLSearchParams(window.location.search).get('ref');
+if (urlCode) {
+  document.getElementById('code-input').value = urlCode;
+  doLogin();
+}
+
+function doLogin() {
+  var code = document.getElementById('code-input').value.trim();
+  if (!code) return;
+  db.collection('partners').doc(code).get().then(function(doc) {
+    if (!doc.exists) {
+      document.getElementById('login-err').style.display = 'block';
+      return;
+    }
+    currentPartner = Object.assign({ id: doc.id }, doc.data());
+    showSettings();
+  }).catch(function() {
+    document.getElementById('login-err').style.display = 'block';
+  });
+}
+
+function showSettings() {
+  var p = currentPartner;
+  document.getElementById('login-box').style.display    = 'none';
+  document.getElementById('settings-box').style.display = 'block';
+
+  document.getElementById('s-avatar').textContent = p.name[0];
+  document.getElementById('s-name').textContent   = p.name + ' 파트너스';
+  document.getElementById('s-code').textContent   = '코드: ' + p.code;
+  document.getElementById('name-input').value     = p.name;
+  document.getElementById('kakao-input').value    = p.kakaoUrl || '';
+
+  var link = LANDING_BASE + '?ref=' + p.code;
+  document.getElementById('my-link-text').textContent = link;
+
+  previewKakao();
+}
+
+function doLogout() {
+  currentPartner = null;
+  document.getElementById('login-box').style.display    = 'block';
+  document.getElementById('settings-box').style.display = 'none';
+  document.getElementById('code-input').value = '';
+  document.getElementById('login-err').style.display = 'none';
+}
+
+function previewKakao() {
+  var val     = document.getElementById('kakao-input').value.trim();
+  var preview = document.getElementById('kakao-preview');
+  preview.style.display = val ? 'flex' : 'none';
+}
+
+function saveSettings() {
+  var kakaoUrl = document.getElementById('kakao-input').value.trim();
+  var btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = '저장 중...';
+
+  db.collection('partners').doc(currentPartner.code).update({
+    kakaoUrl: kakaoUrl
+  }).then(function() {
+    currentPartner.kakaoUrl = kakaoUrl;
+    btn.disabled = false; btn.textContent = '저장하기';
+    showToast('저장됐습니다! 방문자 페이지에 바로 반영됩니다 ✓');
+  }).catch(function(e) {
+    btn.disabled = false; btn.textContent = '저장하기';
+    showToast('오류: ' + e.message);
+  });
+}
+
+function copyMyLink() {
+  var link = LANDING_BASE + '?ref=' + currentPartner.code;
+  navigator.clipboard.writeText(link).then(function(){ showToast('링크가 복사됐습니다'); });
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+</script>
+</body>
+</html>

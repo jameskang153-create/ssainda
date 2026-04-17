@@ -353,6 +353,47 @@
   /* FADE */
   .fade-up { opacity:0; transform:translateY(16px); transition:opacity 0.5s ease, transform 0.5s ease; }
   .fade-up.visible { opacity:1; transform:translateY(0); }
+
+  /* KAKAO 버튼 */
+  .kakao-btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    background:#FEE500; color:#3A1D1D;
+    font-size:12px; font-weight:700;
+    padding:7px 14px; border-radius:14px;
+    text-decoration:none; border:none; cursor:pointer;
+    transition:all 0.2s; box-shadow:0 2px 8px rgba(254,229,0,0.4);
+    white-space:nowrap;
+  }
+  .kakao-btn:hover { background:#F5DC00; transform:translateY(-1px); box-shadow:0 4px 12px rgba(254,229,0,0.5); }
+  .kakao-btn svg { flex-shrink:0; }
+  .kakao-btn-large {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    background:#FEE500; color:#3A1D1D;
+    font-size:14px; font-weight:700;
+    padding:14px 16px; border-radius:var(--radius-md);
+    text-decoration:none; transition:all 0.2s;
+    box-shadow:0 4px 20px rgba(254,229,0,0.35);
+  }
+  .kakao-btn-large:hover { background:#F5DC00; transform:translateY(-1px); }
+  .sp-kakao-btn {
+    display:flex; align-items:center; justify-content:center; gap:4px;
+    margin-top:5px; padding:5px;
+    background:#FEE500; border-radius:6px;
+    font-size:9px; color:#3A1D1D; font-weight:700;
+    text-decoration:none;
+  }
+
+  /* 디자인 개선 */
+  .hero { background:linear-gradient(160deg, #f8f9ff 0%, #ffffff 60%); }
+  .btn-primary {
+    background:linear-gradient(135deg, var(--navy) 0%, #2d35a0 100%);
+    box-shadow:0 6px 24px rgba(30,34,120,0.3);
+  }
+  .stat-num { font-size:20px; }
+  .roadmap-num { background:linear-gradient(135deg, var(--navy) 0%, #2d35a0 100%); box-shadow:0 3px 10px rgba(30,34,120,0.3); }
+  .section-tag { display:inline-block; background:var(--navy-light); padding:3px 10px; border-radius:10px; margin-bottom:8px; }
+  .partner-badge { background:linear-gradient(135deg, #eeeffe 0%, #dde0ff 100%); }
+  .final-cta { background:linear-gradient(160deg, var(--navy-light) 0%, #dde0ff 100%); }
 </style>
 </head>
 <body>
@@ -392,7 +433,13 @@
       <div class="name" id="partner-name">파트너스 링크로 접속해주세요</div>
     </div>
   </div>
-  <a href="#contact" class="partner-contact-btn">문의하기</a>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <a href="#contact" class="partner-contact-btn">문의하기</a>
+    <a href="#" class="kakao-btn" id="kakao-badge-btn" style="display:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#3A1D1D"><path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.611 1.567 4.906 3.938 6.32L5 21l4.563-2.438A11.3 11.3 0 0 0 12 18c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"/></svg>
+      실시간 상담
+    </a>
+  </div>
 </div>
 
 <!-- 메인 레이아웃 -->
@@ -404,7 +451,7 @@
     <!-- HERO -->
     <section class="hero fade-up">
       <div class="hero-tag">싸인다 파트너스 공식</div>
-      <h1 class="hero-title">뻔한 부업 말고<br><span class="accent">진짜 수익</span></h1>
+      <h1 class="hero-title">실패없는<br><span class="accent">제2의 월급만들기</span></h1>
       <p class="hero-sub">사업자 등록도, 사입도, 배송도 없이<br>연결만 해도 돌아가는 시스템 수익을 만드세요</p>
       <div class="no-tags">
         <span class="no-tag">사업자 등록</span>
@@ -431,6 +478,10 @@
                  alt="싸인다">
             <span>쇼핑몰 둘러보기 →</span>
           </div>
+        </a>
+        <a href="#" class="kakao-btn-large" id="kakao-hero-btn" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#3A1D1D"><path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.611 1.567 4.906 3.938 6.32L5 21l4.563-2.438A11.3 11.3 0 0 0 12 18c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"/></svg>
+          실시간 카카오톡 상담하기
         </a>
       </div>
     </section>
@@ -617,6 +668,10 @@
         <div class="sp-avatar" id="side-avatar">?</div>
         <div class="sp-name" id="side-name">-</div>
         <a href="#contact" class="sp-btn">문의하기</a>
+        <a href="#" class="sp-kakao-btn" id="side-kakao-btn" style="display:none;">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="#3A1D1D"><path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.611 1.567 4.906 3.938 6.32L5 21l4.563-2.438A11.3 11.3 0 0 0 12 18c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"/></svg>
+          실시간 상담
+        </a>
       </div>
 
       <div class="side-banner-title">추천 상품</div>
@@ -686,75 +741,61 @@
   </div>
 </footer>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
-/* ════════════════════════════════════════════════════════
-   ★★★ 파트너스 목록 — 새 파트너스 추가 시 여기만 수정 ★★★
-
-   각 항목 설명:
-   name     : 파트너스 이름
-   avatar   : 이름 첫 글자 (프로필 원에 표시)
-   shopUrl  : 이 파트너스의 쇼핑몰 링크 (없으면 기본 주소 사용)
-   signupUrl: 이 파트너스의 회원가입 링크
-   sheetUrl : 이 파트너스의 구글 시트 웹훅 주소
-              (구글 Apps Script 배포 후 받은 주소 입력)
-════════════════════════════════════════════════════════ */
-var partners = {
-  '001': {
-    name:      '홍길동',
-    avatar:    '홍',
-    shopUrl:   'https://ssainda.kr',
-    signupUrl: 'https://ssainda.kr/signup?ref=001',
-    sheetUrl:  'YOUR_GOOGLE_APPS_SCRIPT_URL_001'
-  },
-  '002': {
-    name:      '김철수',
-    avatar:    '김',
-    shopUrl:   'https://ssainda.kr',
-    signupUrl: 'https://ssainda.kr/signup?ref=002',
-    sheetUrl:  'YOUR_GOOGLE_APPS_SCRIPT_URL_002'
-  },
-  '003': {
-    name:      '이영희',
-    avatar:    '이',
-    shopUrl:   'https://ssainda.kr',
-    signupUrl: 'https://ssainda.kr/signup?ref=003',
-    sheetUrl:  'YOUR_GOOGLE_APPS_SCRIPT_URL_003'
-  }
-  /* ↑ 파트너스 추가 시 위 형식 복사해서 아래에 붙여넣기 */
+var firebaseConfig = {
+  apiKey: "AIzaSyBkmtCmg0miiTmAq3blP-_5fa7rBB5Suto",
+  authDomain: "ssainda-partners.firebaseapp.com",
+  projectId: "ssainda-partners",
+  storageBucket: "ssainda-partners.firebasestorage.app",
+  messagingSenderId: "778990269272",
+  appId: "1:778990269272:web:163cc59f8445b864972b2d"
 };
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
 
-/* 기본 주소 (파트너스 코드 없을 때) */
 var DEFAULT_SHOP_URL   = 'https://ssainda.kr';
 var DEFAULT_SIGNUP_URL = 'https://ssainda.kr/signup';
-var DEFAULT_SHEET_URL  = 'YOUR_DEFAULT_GOOGLE_APPS_SCRIPT_URL';
 
-/* ── URL에서 파트너스 코드 읽기 ── */
 var urlParams   = new URLSearchParams(window.location.search);
 var partnerCode = urlParams.get('ref') || '';
-var partner     = partnerCode && partners[partnerCode] ? partners[partnerCode] : null;
+var partnerData = null;
 
-/* ── 파트너스 정보 표시 ── */
-if (partner) {
-  document.getElementById('partner-name').textContent  = partner.name + ' 파트너스';
-  document.getElementById('partner-avatar').textContent = partner.avatar;
-  document.getElementById('side-avatar').textContent   = partner.avatar;
-  document.getElementById('side-name').textContent     = partner.name;
+/* ── Firestore에서 파트너 정보 로드 ── */
+function loadPartner() {
+  if (!partnerCode) return;
+  db.collection('partners').doc(partnerCode).get().then(function(doc) {
+    if (!doc.exists) return;
+    var p = doc.data();
+    partnerData = p;
+
+    document.getElementById('partner-name').textContent   = p.name + ' 파트너스';
+    document.getElementById('partner-avatar').textContent = p.name[0];
+    document.getElementById('side-avatar').textContent    = p.name[0];
+    document.getElementById('side-name').textContent      = p.name;
+
+    var shopUrl   = p.shopUrl   || DEFAULT_SHOP_URL;
+    var signupUrl = p.signupUrl || DEFAULT_SIGNUP_URL;
+
+    document.getElementById('shop-link').href   = shopUrl;
+    document.getElementById('shop-link-2').href = shopUrl;
+    document.getElementById('signup-link').href = signupUrl;
+    ['prod-1','prod-2','prod-3','prod-4'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.href = shopUrl;
+    });
+
+    if (p.kakaoUrl) {
+      ['kakao-badge-btn','kakao-hero-btn','side-kakao-btn'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.href = p.kakaoUrl; el.style.display = ''; }
+      });
+    }
+  });
 }
 
-/* ── 링크 설정 ── */
-var shopUrl   = partner ? partner.shopUrl   : DEFAULT_SHOP_URL;
-var signupUrl = partner ? partner.signupUrl : DEFAULT_SIGNUP_URL;
-var sheetUrl  = partner ? partner.sheetUrl  : DEFAULT_SHEET_URL;
-
-document.getElementById('shop-link').href   = shopUrl;
-document.getElementById('shop-link-2').href = shopUrl;
-document.getElementById('signup-link').href = signupUrl;
-['prod-1','prod-2','prod-3','prod-4'].forEach(function(id) {
-  var el = document.getElementById(id);
-  if (el) el.href = shopUrl;
-});
-
-/* ── 문의 폼 제출 → 구글 시트 전송 ── */
+/* ── 문의 폼 제출 → Firestore ── */
 function submitForm() {
   var name    = document.getElementById('input-name').value.trim();
   var phone   = document.getElementById('input-phone').value.trim();
@@ -764,30 +805,26 @@ function submitForm() {
   if (!phone)   { alert('연락처를 입력해주세요'); return; }
   if (!channel) { alert('관심 경로를 선택해주세요'); return; }
 
-  var now = new Date();
-  var ts  = now.getFullYear() + '-' +
-    String(now.getMonth()+1).padStart(2,'0') + '-' +
-    String(now.getDate()).padStart(2,'0') + ' ' +
-    String(now.getHours()).padStart(2,'0') + ':' +
-    String(now.getMinutes()).padStart(2,'0');
+  var btn = document.querySelector('.btn-submit');
+  btn.disabled = true; btn.textContent = '제출 중...';
 
-  fetch(sheetUrl, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      timestamp:    ts,
-      name:         name,
-      phone:        phone,
-      channel:      channel,
-      partner_code: partnerCode || '직접접속',
-      partner_name: partner ? partner.name : '없음'
-    })
-  }).catch(function(){});
-
-  document.getElementById('contact-form').style.display = 'none';
-  document.getElementById('success-msg').style.display  = 'block';
+  db.collection('inquiries').add({
+    timestamp:   firebase.firestore.FieldValue.serverTimestamp(),
+    name:        name,
+    phone:       phone,
+    channel:     channel,
+    partnerCode: partnerCode || '직접접속',
+    partnerName: partnerData ? partnerData.name : '없음'
+  }).then(function() {
+    document.getElementById('contact-form').style.display = 'none';
+    document.getElementById('success-msg').style.display  = 'block';
+  }).catch(function() {
+    alert('오류가 발생했습니다. 다시 시도해주세요.');
+    btn.disabled = false; btn.textContent = '무료 상담 신청하기';
+  });
 }
+
+loadPartner();
 
 /* ── 스크롤 fade-in ── */
 var observer = new IntersectionObserver(function(entries) {

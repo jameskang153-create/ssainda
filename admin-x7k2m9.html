@@ -265,8 +265,8 @@
           </div>
           <div class="form-row one">
             <div class="form-group">
-              <label class="form-label">구글 시트 웹훅 URL</label>
-              <input type="text" class="form-input" id="new-sheet" placeholder="https://script.google.com/...">
+              <label class="form-label">카카오톡 상담 링크 (오픈채팅 URL)</label>
+              <input type="text" class="form-input" id="new-kakao" placeholder="https://open.kakao.com/o/...">
             </div>
           </div>
           <div style="display:flex;gap:8px;margin-top:4px;">
@@ -288,7 +288,7 @@
         <div class="card-body" style="padding:0;overflow-x:auto;">
           <table class="tbl">
             <thead>
-              <tr><th>코드</th><th>이름</th><th>연락처</th><th>상태</th><th>파트너스 링크</th><th>추가일</th><th>관리</th></tr>
+              <tr><th>코드</th><th>이름</th><th>연락처</th><th>카카오</th><th>상태</th><th>파트너스 링크</th><th>추가일</th><th>관리</th></tr>
             </thead>
             <tbody id="partners-body"></tbody>
           </table>
@@ -309,21 +309,9 @@
 
     <!-- 문의 현황 탭 -->
     <div class="tab-content" id="tab-inquiries">
-      <div class="setup-box">
-        <div class="setup-title">구글 시트 연동 설정</div>
-        <div class="setup-desc">
-          구글 시트 Apps Script 웹훅 주소를 입력하면 문의 현황을 여기서 확인할 수 있습니다.<br>
-          <strong>구글 시트 → 확장 프로그램 → Apps Script → 배포 → 웹 앱으로 배포</strong> 후 주소를 입력하세요.
-        </div>
-        <div class="setup-input">
-          <input type="text" id="sheet-read-url" placeholder="구글 시트 읽기용 웹훅 주소 입력">
-          <button class="btn btn-navy btn-sm" onclick="loadInquiries()">불러오기</button>
-        </div>
-      </div>
-
       <div class="card">
         <div class="card-head">
-          <div class="card-title">전체 문의 현황</div>
+          <div class="card-title">전체 문의 현황 <span id="inquiry-count" style="font-size:12px;color:var(--muted);font-weight:400;"></span></div>
           <div style="display:flex;gap:8px;align-items:center;">
             <select id="filter-partner" onchange="renderInquiries()"
               style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r8);font-size:12px;font-family:'Noto Sans KR',sans-serif;outline:none;">
@@ -337,7 +325,7 @@
               <tr><th>접수시간</th><th>이름</th><th>연락처</th><th>경로</th><th>담당 파트너스</th><th>코드</th></tr>
             </thead>
             <tbody id="inquiries-body">
-              <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">구글 시트 웹훅 주소를 입력하고 불러오기를 누르세요</td></tr>
+              <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">불러오는 중...</td></tr>
             </tbody>
           </table>
         </div>
@@ -421,8 +409,8 @@
     </div>
     <div class="form-row one">
       <div class="form-group">
-        <label class="form-label">구글 시트 웹훅 URL</label>
-        <input type="text" class="form-input" id="edit-sheet">
+        <label class="form-label">카카오톡 상담 링크</label>
+        <input type="text" class="form-input" id="edit-kakao" placeholder="https://open.kakao.com/o/...">
       </div>
     </div>
     <div class="form-row one">
@@ -444,29 +432,36 @@
 <!-- 토스트 -->
 <div class="toast" id="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
-/* ════════════════════════════════
-   설정값
-════════════════════════════════ */
-var ADMIN_PW_KEY  = 'ssainda_admin_pw';
-var PARTNERS_KEY  = 'ssainda_partners';
-var CONFIG_KEY    = 'ssainda_config';
-var LANDING_BASE  = 'https://jameskang153-create.github.io/ssainda/';
+/* ════ Firebase 초기화 ════ */
+var firebaseConfig = {
+  apiKey: "AIzaSyBkmtCmg0miiTmAq3blP-_5fa7rBB5Suto",
+  authDomain: "ssainda-partners.firebaseapp.com",
+  projectId: "ssainda-partners",
+  storageBucket: "ssainda-partners.firebasestorage.app",
+  messagingSenderId: "778990269272",
+  appId: "1:778990269272:web:163cc59f8445b864972b2d"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
 
-/* ════════════════════════════════
-   로컬스토리지 기반 DB
-════════════════════════════════ */
-function getPw()       { return localStorage.getItem(ADMIN_PW_KEY) || 'asdf1234'; }
-function getPartners() { try { return JSON.parse(localStorage.getItem(PARTNERS_KEY)) || []; } catch(e){ return []; } }
-function savePartners(p){ localStorage.setItem(PARTNERS_KEY, JSON.stringify(p)); }
-function getConfig()   { try { return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {}; } catch(e){ return {}; } }
+/* ════ 설정값 ════ */
+var ADMIN_PW_KEY = 'ssainda_admin_pw';
+var CONFIG_KEY   = 'ssainda_config';
+var LANDING_BASE = 'https://jameskang153-create.github.io/ssainda/';
+
+/* ════ 캐시 ════ */
+var partnersCache  = [];
+var inquiriesCache = [];
+
+/* ════ 로컬 유틸 ════ */
+function getPw()          { return localStorage.getItem(ADMIN_PW_KEY) || 'asdf1234'; }
+function getConfig()      { try { return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {}; } catch(e){ return {}; } }
 function saveConfigData(c){ localStorage.setItem(CONFIG_KEY, JSON.stringify(c)); }
 
-var inquiriesData = [];
-
-/* ════════════════════════════════
-   로그인
-════════════════════════════════ */
+/* ════ 로그인 ════ */
 function doLogin() {
   var pw = document.getElementById('pw-input').value;
   if (pw === getPw()) {
@@ -485,114 +480,102 @@ function doLogout() {
   document.getElementById('login-err').style.display = 'none';
 }
 
-/* ════════════════════════════════
-   초기화
-════════════════════════════════ */
+/* ════ 초기화 ════ */
 function initAdmin() {
   var now = new Date();
   document.getElementById('topbar-date').textContent =
     now.getFullYear() + '.' + String(now.getMonth()+1).padStart(2,'0') + '.' + String(now.getDate()).padStart(2,'0');
-
   var cfg = getConfig();
   if (cfg.shop)    document.getElementById('cfg-shop').value    = cfg.shop;
   if (cfg.signup)  document.getElementById('cfg-signup').value  = cfg.signup;
   if (cfg.landing) document.getElementById('cfg-landing').value = cfg.landing;
 
-  updateStats();
-  renderPartners();
-  renderRecentPartners();
-  setNextCode();
+  /* 파트너스 실시간 리스너 */
+  db.collection('partners').orderBy('addedAt').onSnapshot(function(snap) {
+    partnersCache = snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+    renderPartners();
+    renderRecentPartners();
+    updateStats();
+    setNextCode();
+  });
+
+  /* 문의 실시간 리스너 */
+  db.collection('inquiries').orderBy('timestamp','desc').onSnapshot(function(snap) {
+    inquiriesCache = snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+    renderInquiries();
+    updateStats();
+  });
 }
 
-/* ════════════════════════════════
-   탭 전환
-════════════════════════════════ */
+/* ════ 탭 전환 ════ */
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(function(t,i){
-    var names = ['dashboard','partners','inquiries','settings'];
-    t.classList.toggle('active', names[i] === name);
+    t.classList.toggle('active', ['dashboard','partners','inquiries','settings'][i] === name);
   });
   document.querySelectorAll('.tab-content').forEach(function(c){
     c.classList.toggle('active', c.id === 'tab-'+name);
   });
 }
 
-/* ════════════════════════════════
-   통계
-════════════════════════════════ */
+/* ════ 통계 ════ */
 function updateStats() {
-  var ps = getPartners();
-  document.getElementById('stat-total').textContent   = ps.length;
-  document.getElementById('stat-active').textContent  = ps.filter(function(p){return p.status==='active';}).length;
-  document.getElementById('stat-inquiries').textContent = inquiriesData.length;
+  document.getElementById('stat-total').textContent      = partnersCache.length;
+  document.getElementById('stat-active').textContent     = partnersCache.filter(function(p){ return p.status==='active'; }).length;
+  document.getElementById('stat-inquiries').textContent  = inquiriesCache.length;
   var today = new Date().toISOString().slice(0,10);
-  document.getElementById('stat-today').textContent   = inquiriesData.filter(function(i){return i[0] && i[0].startsWith(today);}).length;
+  document.getElementById('stat-today').textContent      = inquiriesCache.filter(function(i){
+    return i.timestamp && i.timestamp.toDate && i.timestamp.toDate().toISOString().startsWith(today);
+  }).length;
 }
 
-/* ════════════════════════════════
-   다음 코드 자동생성
-════════════════════════════════ */
+/* ════ 다음 코드 자동생성 ════ */
 function setNextCode() {
-  var ps = getPartners();
-  var next = String(ps.length + 1).padStart(3,'0');
+  var next = String(partnersCache.length + 1).padStart(3,'0');
   document.getElementById('new-code').value = next;
-  var cfg = getConfig();
-  var base = cfg.signup || 'https://ssainda.kr/signup';
-  document.getElementById('new-signup').value = base + '?ref=' + next;
+  var cfg  = getConfig();
+  document.getElementById('new-signup').value = (cfg.signup || 'https://ssainda.kr/signup') + '?ref=' + next;
   document.getElementById('new-shop').value   = cfg.shop || 'https://ssainda.kr';
 }
 
-/* ════════════════════════════════
-   파트너스 추가
-════════════════════════════════ */
+/* ════ 파트너스 추가 ════ */
 function addPartner() {
   var name  = document.getElementById('new-name').value.trim();
   var phone = document.getElementById('new-phone').value.trim();
   if (!name)  { showToast('이름을 입력하세요'); return; }
   if (!phone) { showToast('연락처를 입력하세요'); return; }
-
-  var ps   = getPartners();
   var code = document.getElementById('new-code').value;
-  var now  = new Date().toISOString().slice(0,10);
-
-  ps.push({
-    code:    code,
-    name:    name,
-    phone:   phone,
-    shop:    document.getElementById('new-shop').value.trim()   || 'https://ssainda.kr',
-    signup:  document.getElementById('new-signup').value.trim() || 'https://ssainda.kr/signup?ref='+code,
-    sheet:   document.getElementById('new-sheet').value.trim(),
-    status:  'active',
-    addedAt: now
-  });
-
-  savePartners(ps);
-  clearAddForm();
-  renderPartners();
-  renderRecentPartners();
-  updateStats();
-  setNextCode();
-  showToast('파트너스 ' + name + '(' + code + ') 추가됐습니다');
+  db.collection('partners').doc(code).set({
+    code:     code,
+    name:     name,
+    phone:    phone,
+    shopUrl:  document.getElementById('new-shop').value.trim()   || 'https://ssainda.kr',
+    signupUrl:document.getElementById('new-signup').value.trim() || 'https://ssainda.kr/signup?ref='+code,
+    kakaoUrl: document.getElementById('new-kakao').value.trim(),
+    status:   'active',
+    addedAt:  new Date().toISOString().slice(0,10)
+  }).then(function(){
+    clearAddForm();
+    showToast('파트너스 ' + name + '(' + code + ') 추가됐습니다');
+  }).catch(function(e){ showToast('오류: ' + e.message); });
 }
 
 function clearAddForm() {
-  ['new-name','new-phone','new-sheet'].forEach(function(id){ document.getElementById(id).value=''; });
+  ['new-name','new-phone','new-kakao'].forEach(function(id){ document.getElementById(id).value=''; });
   setNextCode();
 }
 
-/* ════════════════════════════════
-   파트너스 목록 렌더
-════════════════════════════════ */
+/* ════ 파트너스 목록 렌더 ════ */
 function renderPartners() {
-  var ps     = getPartners();
-  var q      = (document.getElementById('search-input').value || '').toLowerCase();
-  var filtered = q ? ps.filter(function(p){ return p.name.includes(q) || p.code.includes(q) || p.phone.includes(q); }) : ps;
+  var q        = (document.getElementById('search-input').value || '').toLowerCase();
+  var filtered = q ? partnersCache.filter(function(p){
+    return p.name.includes(q) || p.code.includes(q) || (p.phone||'').includes(q);
+  }) : partnersCache;
 
   document.getElementById('partner-count').textContent = '(' + filtered.length + '명)';
 
   var sel = document.getElementById('filter-partner');
   sel.innerHTML = '<option value="">전체 파트너스</option>';
-  ps.forEach(function(p){
+  partnersCache.forEach(function(p){
     var o = document.createElement('option');
     o.value = p.code; o.textContent = p.name + '(' + p.code + ')';
     sel.appendChild(o);
@@ -600,35 +583,35 @@ function renderPartners() {
 
   var tbody = document.getElementById('partners-body');
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">파트너스가 없습니다. 위에서 추가해주세요.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">파트너스가 없습니다. 위에서 추가해주세요.</td></tr>';
     return;
   }
-
-  tbody.innerHTML = filtered.map(function(p, i) {
-    var realIdx = ps.indexOf(p);
-    var link    = LANDING_BASE + '?ref=' + p.code;
+  tbody.innerHTML = filtered.map(function(p) {
+    var link = LANDING_BASE + '?ref=' + p.code;
+    var kakao = p.kakaoUrl
+      ? '<a href="' + p.kakaoUrl + '" target="_blank" style="color:#b8860b;font-weight:700;font-size:11px;">✓ 연동됨</a>'
+      : '<span style="color:var(--muted);font-size:11px;">미설정</span>';
     var statusBadge = p.status === 'active'
       ? '<span class="badge badge-green">활동 중</span>'
       : '<span class="badge badge-red">비활성</span>';
     return '<tr>' +
       '<td><span class="badge badge-navy">' + p.code + '</span></td>' +
       '<td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">' + p.name[0] + '</div>' + p.name + '</div></td>' +
-      '<td>' + p.phone + '</td>' +
+      '<td>' + (p.phone||'-') + '</td>' +
+      '<td>' + kakao + '</td>' +
       '<td>' + statusBadge + '</td>' +
       '<td><div class="link-box"><span class="link-text">' + link + '</span><button class="copy-btn" onclick="copyLink(\'' + link + '\')">복사</button></div></td>' +
       '<td style="color:var(--muted)">' + (p.addedAt||'-') + '</td>' +
       '<td><div style="display:flex;gap:4px;">' +
-        '<button class="btn btn-outline btn-sm" onclick="openEdit(' + realIdx + ')">수정</button>' +
-        '<button class="btn btn-red btn-sm" onclick="deletePartner(' + realIdx + ')">삭제</button>' +
-      '</div></td>' +
-      '</tr>';
+        '<button class="btn btn-outline btn-sm" onclick="openEdit(\'' + p.code + '\')">수정</button>' +
+        '<button class="btn btn-red btn-sm" onclick="deletePartner(\'' + p.code + '\',\'' + p.name + '\')">삭제</button>' +
+      '</div></td></tr>';
   }).join('');
 }
 
 function renderRecentPartners() {
-  var ps    = getPartners();
-  var tbody = document.getElementById('recent-partners-body');
-  var recent = ps.slice(-5).reverse();
+  var tbody  = document.getElementById('recent-partners-body');
+  var recent = partnersCache.slice(-5).reverse();
   if (!recent.length) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">아직 파트너스가 없습니다</td></tr>';
     return;
@@ -638,127 +621,88 @@ function renderRecentPartners() {
     return '<tr>' +
       '<td><span class="badge badge-navy">' + p.code + '</span></td>' +
       '<td>' + p.name + '</td>' +
-      '<td>' + p.phone + '</td>' +
+      '<td>' + (p.phone||'-') + '</td>' +
       '<td><span class="badge badge-green">활동 중</span></td>' +
       '<td><button class="copy-btn" onclick="copyLink(\'' + link + '\')">링크 복사</button></td>' +
       '</tr>';
   }).join('');
 }
 
-/* ════════════════════════════════
-   수정 모달
-════════════════════════════════ */
-function openEdit(idx) {
-  var p = getPartners()[idx];
-  document.getElementById('edit-idx').value    = idx;
+/* ════ 수정 모달 ════ */
+function openEdit(code) {
+  var p = partnersCache.find(function(x){ return x.code === code; });
+  if (!p) return;
+  document.getElementById('edit-idx').value    = code;
   document.getElementById('edit-code').value   = p.code;
   document.getElementById('edit-name').value   = p.name;
-  document.getElementById('edit-phone').value  = p.phone;
-  document.getElementById('edit-shop').value   = p.shop   || '';
-  document.getElementById('edit-signup').value = p.signup || '';
-  document.getElementById('edit-sheet').value  = p.sheet  || '';
+  document.getElementById('edit-phone').value  = p.phone  || '';
+  document.getElementById('edit-shop').value   = p.shopUrl   || '';
+  document.getElementById('edit-signup').value = p.signupUrl || '';
+  document.getElementById('edit-kakao').value  = p.kakaoUrl  || '';
   document.getElementById('edit-status').value = p.status || 'active';
   document.getElementById('edit-modal').classList.add('open');
 }
 function closeModal() { document.getElementById('edit-modal').classList.remove('open'); }
 function saveEdit() {
-  var idx = parseInt(document.getElementById('edit-idx').value);
-  var ps  = getPartners();
-  ps[idx].name   = document.getElementById('edit-name').value.trim();
-  ps[idx].phone  = document.getElementById('edit-phone').value.trim();
-  ps[idx].shop   = document.getElementById('edit-shop').value.trim();
-  ps[idx].signup = document.getElementById('edit-signup').value.trim();
-  ps[idx].sheet  = document.getElementById('edit-sheet').value.trim();
-  ps[idx].status = document.getElementById('edit-status').value;
-  savePartners(ps);
-  closeModal();
-  renderPartners();
-  renderRecentPartners();
-  showToast('수정됐습니다');
+  var code = document.getElementById('edit-idx').value;
+  db.collection('partners').doc(code).update({
+    name:      document.getElementById('edit-name').value.trim(),
+    phone:     document.getElementById('edit-phone').value.trim(),
+    shopUrl:   document.getElementById('edit-shop').value.trim(),
+    signupUrl: document.getElementById('edit-signup').value.trim(),
+    kakaoUrl:  document.getElementById('edit-kakao').value.trim(),
+    status:    document.getElementById('edit-status').value
+  }).then(function(){
+    closeModal();
+    showToast('수정됐습니다');
+  }).catch(function(e){ showToast('오류: ' + e.message); });
 }
 
-/* ════════════════════════════════
-   삭제
-════════════════════════════════ */
-function deletePartner(idx) {
-  var ps = getPartners();
-  if (!confirm(ps[idx].name + ' 파트너스를 삭제하시겠습니까?')) return;
-  ps.splice(idx, 1);
-  savePartners(ps);
-  renderPartners();
-  renderRecentPartners();
-  updateStats();
-  showToast('삭제됐습니다');
+/* ════ 삭제 ════ */
+function deletePartner(code, name) {
+  if (!confirm(name + ' 파트너스를 삭제하시겠습니까?')) return;
+  db.collection('partners').doc(code).delete()
+    .then(function(){ showToast('삭제됐습니다'); })
+    .catch(function(e){ showToast('오류: ' + e.message); });
 }
 
-/* ════════════════════════════════
-   코드 내보내기
-════════════════════════════════ */
-function exportPartners() {
-  var ps  = getPartners();
-  var box = document.getElementById('export-box');
-  box.style.display = 'block';
-  var code = 'var partners = {\n' +
-    ps.map(function(p){
-      return '  \'' + p.code + '\': {\n' +
-        '    name:      \'' + p.name    + '\',\n' +
-        '    avatar:    \'' + p.name[0] + '\',\n' +
-        '    shopUrl:   \'' + (p.shop   || 'https://ssainda.kr') + '\',\n' +
-        '    signupUrl: \'' + (p.signup || 'https://ssainda.kr/signup?ref='+p.code) + '\',\n' +
-        '    sheetUrl:  \'' + (p.sheet  || 'YOUR_SHEET_URL') + '\'\n' +
-        '  }';
-    }).join(',\n') + '\n};';
-  document.getElementById('export-code').textContent = code;
-  box.scrollIntoView({ behavior:'smooth' });
-}
-
-function copyExport() {
-  var text = document.getElementById('export-code').textContent;
-  navigator.clipboard.writeText(text).then(function(){ showToast('복사됐습니다! index.html에 붙여넣기 하세요'); });
-}
-
-/* ════════════════════════════════
-   문의 불러오기
-════════════════════════════════ */
-function loadInquiries() {
-  showToast('구글 시트에서 불러오는 중...');
-  var url = document.getElementById('sheet-read-url').value.trim();
-  if (!url) { showToast('웹훅 주소를 입력하세요'); return; }
-  fetch(url)
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      inquiriesData = data;
-      renderInquiries();
-      updateStats();
-      showToast('문의 데이터를 불러왔습니다');
-    })
-    .catch(function(){ showToast('불러오기 실패. 주소를 확인해주세요'); });
-}
-
+/* ════ 문의 렌더 ════ */
 function renderInquiries() {
   var filter = document.getElementById('filter-partner').value;
-  var data   = filter ? inquiriesData.filter(function(r){ return r[4] === filter; }) : inquiriesData;
+  var data   = filter ? inquiriesCache.filter(function(i){ return i.partnerCode === filter; }) : inquiriesCache;
+  document.getElementById('inquiry-count').textContent = '(' + data.length + '건)';
   var tbody  = document.getElementById('inquiries-body');
   if (!data.length) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">문의가 없습니다</td></tr>';
     return;
   }
-  tbody.innerHTML = data.map(function(r){
-    var channelMap = {kakao:'카카오톡',instagram:'인스타그램',youtube:'유튜브',blog:'블로그',meta:'메타광고',other:'기타'};
+  var channelMap = {kakao:'카카오톡',instagram:'인스타그램',youtube:'유튜브',blog:'블로그',meta:'메타광고',other:'기타'};
+  tbody.innerHTML = data.map(function(i){
+    var ts = i.timestamp && i.timestamp.toDate ? i.timestamp.toDate().toLocaleString('ko-KR') : '-';
     return '<tr>' +
-      '<td style="color:var(--muted)">' + (r[0]||'-') + '</td>' +
-      '<td><strong>' + (r[1]||'-') + '</strong></td>' +
-      '<td>' + (r[2]||'-') + '</td>' +
-      '<td><span class="badge badge-yellow">' + (channelMap[r[3]]||r[3]||'-') + '</span></td>' +
-      '<td>' + (r[5]||'-') + '</td>' +
-      '<td><span class="badge badge-navy">' + (r[4]||'-') + '</span></td>' +
+      '<td style="color:var(--muted)">' + ts + '</td>' +
+      '<td><strong>' + (i.name||'-') + '</strong></td>' +
+      '<td>' + (i.phone||'-') + '</td>' +
+      '<td><span class="badge badge-yellow">' + (channelMap[i.channel]||i.channel||'-') + '</span></td>' +
+      '<td>' + (i.partnerName||'-') + '</td>' +
+      '<td><span class="badge badge-navy">' + (i.partnerCode||'-') + '</span></td>' +
       '</tr>';
   }).join('');
 }
 
-/* ════════════════════════════════
-   설정 저장
-════════════════════════════════ */
+/* ════ 코드 내보내기 (레거시 호환) ════ */
+function exportPartners() {
+  var box = document.getElementById('export-box');
+  box.style.display = 'block';
+  document.getElementById('export-code').textContent = '※ Firebase 연동 후에는 코드 내보내기가 필요하지 않습니다.\n파트너스 정보는 Firestore에서 실시간으로 불러옵니다.';
+  box.scrollIntoView({ behavior:'smooth' });
+}
+function copyExport() {
+  navigator.clipboard.writeText(document.getElementById('export-code').textContent)
+    .then(function(){ showToast('복사됐습니다'); });
+}
+
+/* ════ 설정 ════ */
 function saveConfig() {
   saveConfigData({
     shop:    document.getElementById('cfg-shop').value.trim(),
@@ -768,7 +712,6 @@ function saveConfig() {
   showToast('설정이 저장됐습니다');
   setNextCode();
 }
-
 function changePw() {
   var cur = document.getElementById('pw-current').value;
   var nw  = document.getElementById('pw-new').value;
@@ -780,16 +723,13 @@ function changePw() {
   showToast('비밀번호가 변경됐습니다');
 }
 
-/* ════════════════════════════════
-   유틸
-════════════════════════════════ */
+/* ════ 유틸 ════ */
 function copyLink(url) {
   navigator.clipboard.writeText(url).then(function(){ showToast('링크가 복사됐습니다'); });
 }
 function showToast(msg) {
   var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   setTimeout(function(){ t.classList.remove('show'); }, 2500);
 }
 </script>
