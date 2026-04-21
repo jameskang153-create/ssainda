@@ -6,15 +6,7 @@
 
   /* ------------------------ State ------------------------ */
   const SESSION_KEY = 'ssainda.portal.session';
-  const PARTNER_KEYS = ['ssainda.partners', 'ssainda_partners', 'partners'];
-
-  // Fallback partners used when localStorage is empty (e.g. first visit,
-  // or when the admin page hasn't been opened yet). Keeps demo usable.
-  const FALLBACK_PARTNERS = [
-    { code: '001', name: '김파트너', email: 'kim@ssainda.test', pin: '1234', phone: '010-0000-0001', status: 'active' },
-    { code: '002', name: '이파트너', email: 'lee@ssainda.test', pin: '5678', phone: '010-0000-0002', status: 'active' },
-    { code: '003', name: '박파트너', email: 'park@ssainda.test', pin: '0000', phone: '010-0000-0003', status: 'active' }
-  ];
+  const db = window.__db; // Firestore instance (set in portal.html)
 
   const state = {
     partner: null,
@@ -36,31 +28,50 @@
     }
   }
 
-  function readPartnersFromStorage() {
-    for (const key of PARTNER_KEYS) {
-      try {
-        const raw = localStorage.getItem(key);
-        if (!raw) continue;
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length) return parsed;
-        // Some admin layouts store as object map { "001": {...} }
-        if (parsed && typeof parsed === 'object') {
-          const arr = Object.values(parsed);
-          if (arr.length) return arr;
-        }
-      } catch (_) { /* ignore parse errors, try next key */ }
-    }
-    return FALLBACK_PARTNERS;
+  /* ---- Firestore helpers ---- */
+  async function findPartnerByEmail(email) {
+    const norm = String(email || '').trim().toLowerCase();
+    if (!norm || !db) return null;
+    const snap = await db.collection('partners')
+      .where('email', '==', norm)
+      .limit(1)
+      .get();
+    if (snap.empty) return null;
+    const doc = snap.docs[0];
+    return Object.assign({ id: doc.id }, doc.data());
   }
 
-  function findPartnerByEmail(email) {
-    const list = readPartnersFromStorage();
-    const norm = String(email || '').trim().toLowerCase();
-    if (!norm) return null;
-    return list.find((p) => {
-      const e = String(p.email || '').trim().toLowerCase();
-      return e === norm;
-    }) || null;
+  async function isEmailTaken(email) {
+    const p = await findPartnerByEmail(email);
+    return !!p;
+  }
+
+  async function nextPartnerCode() {
+    // Find highest existing code, increment. Starts at 001.
+    if (!db) return '001';
+    const snap = await db.collection('partners').orderBy('code', 'desc').limit(1).get();
+    if (snap.empty) return '001';
+    const max = Number(String(snap.docs[0].data().code || '0').replace(/\D/g, '')) || 0;
+    return String(max + 1).padStart(3, '0');
+  }
+
+  async function createPartner({ name, email, phone, pin }) {
+    const code = await nextPartnerCode();
+    const doc = {
+      code,
+      name,
+      email: String(email).toLowerCase(),
+      phone,
+      pin,
+      status: 'active',
+      shopUrl: 'https://ssainda.kr',
+      signupUrl: 'https://ssainda.kr/signup?ref=' + code,
+      kakaoUrl: '',
+      addedAt: new Date().toISOString().slice(0, 10),
+      source: 'portal-signup'
+    };
+    await db.collection('partners').doc(code).set(doc);
+    return doc;
   }
 
   function verifyPin(partner, pin) {
@@ -115,16 +126,59 @@
     return trimmed.charAt(0).toUpperCase();
   }
 
-  /* ------------------------ Login ------------------------ */
+  /* ------------------------ Auth (login + signup) ------------------------ */
+  function switchAuthMode(mode) {
+    const validModes = ['login', 'signup'];
+    if (!validModes.includes(mode)) mode = 'login';
+    document.querySelectorAll('.auth-tab').forEach((t) =>
+      t.classList.toggle('is-active', t.dataset.auth === mode)
+    );
+    document.querySelectorAll('.auth-panel').forEach((p) =>
+      p.classList.toggle('is-active', p.dataset.authPanel === mode)
+    );
+  }
+
+  function attachAuthTabs() {
+    document.addEventListener('click', (e) => {
+      const tab = e.target.closest('[data-auth]');
+      if (tab) {
+        e.preventDefault();
+        switchAuthMode(tab.dataset.auth);
+        return;
+      }
+      const switcher = e.target.closest('[data-auth-switch]');
+      if (switcher) {
+        e.preventDefault();
+        switchAuthMode(switcher.dataset.authSwitch);
+      }
+    });
+  }
+
+  function setFormLoading(btn, loading, textIdle) {
+    if (!btn) return;
+    if (loading) {
+      btn.disabled = true;
+      btn.dataset.original = btn.innerHTML;
+      btn.innerHTML = '<i data-lucide="loader"></i> <span>처리 중...</span>';
+      renderIcons();
+    } else {
+      btn.disabled = false;
+      if (btn.dataset.original) {
+        btn.innerHTML = btn.dataset.original;
+        renderIcons();
+      }
+    }
+  }
+
   function attachLoginHandlers() {
     const form = $('#login-form');
     const emailInput = $('#login-email');
     const pinInput = $('#login-pin');
     const errEl = $('#login-error');
+    const submitBtn = $('#login-submit');
 
     if (!form) return;
 
-    // PIN: digits only, 4 max
     pinInput.addEventListener('input', () => {
       pinInput.value = pinInput.value.replace(/\D+/g, '').slice(0, 4);
       if (errEl.textContent) errEl.textContent = '';
@@ -133,44 +187,117 @@
       if (errEl.textContent) errEl.textContent = '';
     });
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = emailInput.value.trim();
       const pin = pinInput.value.trim();
 
-      if (!email) {
-        errEl.textContent = '이메일 주소를 입력해주세요.';
-        emailInput.focus();
-        return;
-      }
+      if (!email) { errEl.textContent = '이메일 주소를 입력해주세요.'; emailInput.focus(); return; }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        errEl.textContent = '올바른 이메일 형식이 아닙니다.';
-        emailInput.focus();
-        return;
+        errEl.textContent = '올바른 이메일 형식이 아닙니다.'; emailInput.focus(); return;
       }
       if (!/^[0-9]{4}$/.test(pin)) {
-        errEl.textContent = 'PIN 4자리를 정확히 입력해주세요.';
-        pinInput.focus();
-        return;
+        errEl.textContent = 'PIN 4자리를 정확히 입력해주세요.'; pinInput.focus(); return;
       }
 
-      const partner = findPartnerByEmail(email);
-      if (!partner) {
-        errEl.textContent = '등록되지 않은 이메일입니다. 먼저 파트너스 전산 페이지에서 가입해주세요.';
-        emailInput.focus();
-        return;
+      setFormLoading(submitBtn, true);
+      try {
+        const partner = await findPartnerByEmail(email);
+        if (!partner) {
+          errEl.textContent = '등록되지 않은 이메일입니다. 회원가입을 먼저 진행해주세요.';
+          emailInput.focus();
+          return;
+        }
+        if (partner.status && partner.status !== 'active') {
+          errEl.textContent = '현재 비활성 상태의 계정입니다. 본사에 문의해주세요.';
+          return;
+        }
+        if (!verifyPin(partner, pin)) {
+          errEl.textContent = 'PIN이 일치하지 않습니다.';
+          pinInput.focus(); pinInput.select();
+          return;
+        }
+        loginAs(partner);
+      } catch (err) {
+        console.error('login error:', err);
+        errEl.textContent = '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      } finally {
+        setFormLoading(submitBtn, false);
       }
-      if (partner.status && partner.status !== 'active' && partner.status !== '활동') {
-        errEl.textContent = '현재 비활성 상태의 계정입니다. 본사에 문의해주세요.';
-        return;
+    });
+  }
+
+  function attachSignupHandlers() {
+    const form = $('#signup-form');
+    const nameInput = $('#signup-name');
+    const emailInput = $('#signup-email');
+    const phoneInput = $('#signup-phone');
+    const pinInput = $('#signup-pin');
+    const pin2Input = $('#signup-pin2');
+    const errEl = $('#signup-error');
+    const submitBtn = $('#signup-submit');
+
+    if (!form) return;
+
+    [pinInput, pin2Input].forEach((el) =>
+      el.addEventListener('input', () => {
+        el.value = el.value.replace(/\D+/g, '').slice(0, 4);
+        if (errEl.textContent) errEl.textContent = '';
+      })
+    );
+    [nameInput, emailInput, phoneInput].forEach((el) =>
+      el.addEventListener('input', () => {
+        if (errEl.textContent) errEl.textContent = '';
+      })
+    );
+    phoneInput.addEventListener('input', () => {
+      // Auto-format 010-xxxx-xxxx
+      const digits = phoneInput.value.replace(/\D/g, '').slice(0, 11);
+      if (digits.length >= 11) {
+        phoneInput.value = digits.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+      } else if (digits.length >= 7) {
+        phoneInput.value = digits.replace(/(\d{3})(\d{3,4})(\d*)/, (_, a, b, c) => c ? `${a}-${b}-${c}` : `${a}-${b}`);
+      } else {
+        phoneInput.value = digits;
       }
-      if (!verifyPin(partner, pin)) {
-        errEl.textContent = 'PIN이 일치하지 않습니다. 담당 매니저에게 문의하세요.';
-        pinInput.focus();
-        pinInput.select();
-        return;
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim().toLowerCase();
+      const phone = phoneInput.value.trim();
+      const pin = pinInput.value.trim();
+      const pin2 = pin2Input.value.trim();
+
+      if (!name) { errEl.textContent = '이름을 입력해주세요.'; nameInput.focus(); return; }
+      if (!email) { errEl.textContent = '이메일을 입력해주세요.'; emailInput.focus(); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errEl.textContent = '올바른 이메일 형식이 아닙니다.'; emailInput.focus(); return;
       }
-      loginAs(partner);
+      if (!phone) { errEl.textContent = '연락처를 입력해주세요.'; phoneInput.focus(); return; }
+      if (!/^[0-9]{4}$/.test(pin)) {
+        errEl.textContent = 'PIN 4자리 숫자를 입력해주세요.'; pinInput.focus(); return;
+      }
+      if (pin !== pin2) {
+        errEl.textContent = 'PIN이 일치하지 않습니다.'; pin2Input.focus(); pin2Input.select(); return;
+      }
+
+      setFormLoading(submitBtn, true);
+      try {
+        if (await isEmailTaken(email)) {
+          errEl.textContent = '이미 가입된 이메일입니다. 로그인 탭으로 이동하세요.';
+          return;
+        }
+        const partner = await createPartner({ name, email, phone, pin });
+        showToast(`가입 완료! ${name}님, 환영합니다 🎉`, 'sparkles');
+        loginAs(partner);
+      } catch (err) {
+        console.error('signup error:', err);
+        errEl.textContent = '가입 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      } finally {
+        setFormLoading(submitBtn, false);
+      }
     });
   }
 
@@ -188,11 +315,13 @@
     $('#app').hidden = true;
     $('#login-screen').hidden = false;
     document.body.style.overflow = '';
-    const emailEl = $('#login-email');
-    const pinEl = $('#login-pin');
-    if (emailEl) emailEl.value = '';
-    if (pinEl) pinEl.value = '';
-    $('#login-error').textContent = '';
+    ['login-email','login-pin','signup-name','signup-email','signup-phone','signup-pin','signup-pin2'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    const le = $('#login-error'); if (le) le.textContent = '';
+    const se = $('#signup-error'); if (se) se.textContent = '';
+    switchAuthMode('login');
   }
 
   /* ------------------------ App init ------------------------ */
@@ -895,7 +1024,9 @@
   /* ------------------------ Bootstrap ------------------------ */
   function init() {
     renderIcons();
+    attachAuthTabs();
     attachLoginHandlers();
+    attachSignupHandlers();
     attachNavHandlers();
     attachSidebarHandlers();
     attachNoticeFilters();

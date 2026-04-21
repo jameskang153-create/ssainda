@@ -20,6 +20,20 @@
 
   <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Firebase (compat build, matches admin-x7k2m9.html) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyBkmtCmg0miiTmAq3blP-_5fa7rBB5Suto",
+      authDomain: "ssainda-partners.firebaseapp.com",
+      projectId: "ssainda-partners",
+      storageBucket: "ssainda-partners.firebasestorage.app"
+    };
+    firebase.initializeApp(firebaseConfig);
+    window.__db = firebase.firestore();
+  </script>
 </head>
 <body>
 
@@ -42,52 +56,151 @@
         <p class="brand-sub">PARTNERS PORTAL</p>
       </div>
 
-      <h1 class="login-title">싸인다 파트너스 포털</h1>
-      <p class="login-desc">등록된 이메일과 PIN으로 접속하세요</p>
+      <!-- Auth mode toggle -->
+      <div class="auth-tabs" id="auth-tabs">
+        <button class="auth-tab is-active" data-auth="login">로그인</button>
+        <button class="auth-tab" data-auth="signup">회원가입</button>
+      </div>
 
-      <form id="login-form" class="login-form" autocomplete="off" novalidate>
-        <label class="field">
-          <span class="field-label">이메일 주소</span>
-          <input
-            id="login-email"
-            name="email"
-            type="email"
-            inputmode="email"
-            placeholder="partner@example.com"
-            autocomplete="username"
-            required
-          />
-          <span class="field-hint">파트너스 전산 페이지에 가입한 이메일</span>
-        </label>
+      <!-- ===== LOGIN FORM ===== -->
+      <div class="auth-panel is-active" data-auth-panel="login">
+        <h1 class="login-title">싸인다 파트너스 포털</h1>
+        <p class="login-desc">이메일과 PIN으로 접속하세요</p>
 
-        <label class="field">
-          <span class="field-label">PIN 번호 (4자리)</span>
-          <input
-            id="login-pin"
-            name="pin"
-            type="password"
-            inputmode="numeric"
-            maxlength="4"
-            pattern="[0-9]{4}"
-            placeholder="••••"
-            autocomplete="current-password"
-            required
-          />
-          <span class="field-hint">본사에서 발급받은 4자리 PIN</span>
-        </label>
+        <form id="login-form" class="login-form" autocomplete="off" novalidate>
+          <label class="field">
+            <span class="field-label">이메일 주소</span>
+            <input
+              id="login-email"
+              name="email"
+              type="email"
+              inputmode="email"
+              placeholder="partner@example.com"
+              autocomplete="username"
+              required
+            />
+          </label>
 
-        <p id="login-error" class="login-error" role="alert" aria-live="polite"></p>
+          <label class="field">
+            <span class="field-label">PIN 번호 (4자리)</span>
+            <input
+              id="login-pin"
+              name="pin"
+              type="password"
+              inputmode="numeric"
+              maxlength="4"
+              pattern="[0-9]{4}"
+              placeholder="••••"
+              autocomplete="current-password"
+              required
+            />
+          </label>
 
-        <button type="submit" class="btn btn-cta btn-block">
-          <span>접속하기</span>
-          <i data-lucide="arrow-right"></i>
-        </button>
+          <p id="login-error" class="login-error" role="alert" aria-live="polite"></p>
 
-        <p class="login-hint">
-          <i data-lucide="info"></i>
-          <span>아직 가입 전이신가요? 파트너스 전산 페이지에서 이메일 등록 후, PIN은 담당 매니저 또는 <a href="tel:15445292">1544-5292</a>로 문의하세요.</span>
-        </p>
-      </form>
+          <button type="submit" class="btn btn-cta btn-block" id="login-submit">
+            <span>접속하기</span>
+            <i data-lucide="arrow-right"></i>
+          </button>
+
+          <p class="login-hint">
+            <i data-lucide="info"></i>
+            <span>처음이신가요? 상단에서 <a href="#" class="switch-to-signup" data-auth-switch="signup">회원가입</a> 탭을 선택하세요.</span>
+          </p>
+        </form>
+      </div>
+
+      <!-- ===== SIGNUP FORM ===== -->
+      <div class="auth-panel" data-auth-panel="signup">
+        <h1 class="login-title">파트너스 회원가입</h1>
+        <p class="login-desc">필수 정보를 입력하고 바로 접속하세요</p>
+
+        <form id="signup-form" class="login-form" autocomplete="off" novalidate>
+          <label class="field">
+            <span class="field-label">이름 *</span>
+            <input
+              id="signup-name"
+              name="name"
+              type="text"
+              placeholder="홍길동"
+              autocomplete="name"
+              required
+              maxlength="20"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field-label">이메일 주소 *</span>
+            <input
+              id="signup-email"
+              name="email"
+              type="email"
+              inputmode="email"
+              placeholder="partner@example.com"
+              autocomplete="email"
+              required
+            />
+            <span class="field-hint">로그인 시 사용되는 이메일입니다</span>
+          </label>
+
+          <label class="field">
+            <span class="field-label">연락처 *</span>
+            <input
+              id="signup-phone"
+              name="phone"
+              type="tel"
+              inputmode="tel"
+              placeholder="010-0000-0000"
+              autocomplete="tel"
+              required
+              maxlength="13"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field-label">PIN 번호 (4자리) *</span>
+            <input
+              id="signup-pin"
+              name="pin"
+              type="password"
+              inputmode="numeric"
+              maxlength="4"
+              pattern="[0-9]{4}"
+              placeholder="••••"
+              autocomplete="new-password"
+              required
+            />
+            <span class="field-hint">로그인 시 사용할 4자리 숫자</span>
+          </label>
+
+          <label class="field">
+            <span class="field-label">PIN 확인 *</span>
+            <input
+              id="signup-pin2"
+              name="pin2"
+              type="password"
+              inputmode="numeric"
+              maxlength="4"
+              pattern="[0-9]{4}"
+              placeholder="••••"
+              autocomplete="new-password"
+              required
+            />
+          </label>
+
+          <p id="signup-error" class="login-error" role="alert" aria-live="polite"></p>
+
+          <button type="submit" class="btn btn-cta btn-block" id="signup-submit">
+            <span>가입하고 시작하기</span>
+            <i data-lucide="arrow-right"></i>
+          </button>
+
+          <p class="login-hint">
+            <i data-lucide="shield"></i>
+            <span>가입 즉시 대시보드에 접속할 수 있습니다. 수집된 정보는 파트너 운영 외 용도로 사용되지 않습니다.</span>
+          </p>
+        </form>
+      </div>
 
       <div class="login-foot">
         <span>© (주)싸인다</span>

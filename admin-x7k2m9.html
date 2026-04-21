@@ -256,6 +256,12 @@
           </div>
           <div class="form-row">
             <div class="form-group">
+              <label class="form-label">이메일 * <span style="font-weight:400;color:var(--muted)">(포털 로그인용)</span></label>
+              <input type="email" class="form-input" id="new-email" placeholder="partner@example.com">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
               <label class="form-label">쇼핑몰 링크</label>
               <input type="text" class="form-input" id="new-shop" placeholder="https://ssainda.kr">
             </div>
@@ -293,7 +299,7 @@
         <div class="card-body" style="padding:0;overflow-x:auto;">
           <table class="tbl">
             <thead>
-              <tr><th>코드</th><th>이름</th><th>연락처</th><th>카카오</th><th>상태</th><th>파트너스 링크</th><th>추가일</th><th>관리</th></tr>
+              <tr><th>코드</th><th>이름</th><th>이메일</th><th>연락처</th><th>카카오</th><th>상태</th><th>파트너스 링크</th><th>추가일</th><th>관리</th></tr>
             </thead>
             <tbody id="partners-body"></tbody>
           </table>
@@ -443,6 +449,12 @@
       <div class="form-group">
         <label class="form-label">연락처</label>
         <input type="text" class="form-input" id="edit-phone">
+      </div>
+    </div>
+    <div class="form-row one">
+      <div class="form-group">
+        <label class="form-label">이메일 (포털 로그인용)</label>
+        <input type="email" class="form-input" id="edit-email" placeholder="partner@example.com">
       </div>
     </div>
     <div class="form-row">
@@ -604,15 +616,22 @@ function setNextCode() {
 function addPartner() {
   var name  = document.getElementById('new-name').value.trim();
   var phone = document.getElementById('new-phone').value.trim();
+  var email = (document.getElementById('new-email').value || '').trim().toLowerCase();
   if (!name)  { showToast('이름을 입력하세요'); return; }
   if (!phone) { showToast('연락처를 입력하세요'); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('이메일을 올바르게 입력하세요'); return; }
   var code = document.getElementById('new-code').value;
   var pin = document.getElementById('new-pin').value.trim();
   if (!pin || pin.length < 4) { showToast('PIN 4자리를 입력하세요'); return; }
+  // Ensure email uniqueness
+  if (partnersCache.some(function(p){ return (p.email||'').toLowerCase() === email; })) {
+    showToast('이미 등록된 이메일입니다'); return;
+  }
   db.collection('partners').doc(code).set({
     code:     code,
     name:     name,
     phone:    phone,
+    email:    email,
     shopUrl:  document.getElementById('new-shop').value.trim()   || 'https://ssainda.kr',
     signupUrl:document.getElementById('new-signup').value.trim() || 'https://ssainda.kr/signup?ref='+code,
     kakaoUrl: document.getElementById('new-kakao').value.trim(),
@@ -626,7 +645,7 @@ function addPartner() {
 }
 
 function clearAddForm() {
-  ['new-name','new-phone','new-kakao','new-pin'].forEach(function(id){ document.getElementById(id).value=''; });
+  ['new-name','new-phone','new-email','new-kakao','new-pin'].forEach(function(id){ document.getElementById(id).value=''; });
   setNextCode();
 }
 
@@ -649,7 +668,7 @@ function renderPartners() {
 
   var tbody = document.getElementById('partners-body');
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">파트너스가 없습니다. 위에서 추가해주세요.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px;">파트너스가 없습니다. 위에서 추가해주세요.</td></tr>';
     return;
   }
   tbody.innerHTML = filtered.map(function(p) {
@@ -657,12 +676,16 @@ function renderPartners() {
     var kakao = p.kakaoUrl
       ? '<a href="' + p.kakaoUrl + '" target="_blank" style="color:#b8860b;font-weight:700;font-size:11px;">✓ 연동됨</a>'
       : '<span style="color:var(--muted);font-size:11px;">미설정</span>';
+    var emailCell = p.email
+      ? '<span style="font-size:11px;color:var(--text);">' + p.email + '</span>'
+      : '<span style="color:var(--muted);font-size:11px;">미등록</span>';
     var statusBadge = p.status === 'active'
       ? '<span class="badge badge-green">활동 중</span>'
       : '<span class="badge badge-red">비활성</span>';
     return '<tr>' +
       '<td><span class="badge badge-navy">' + p.code + '</span></td>' +
       '<td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">' + p.name[0] + '</div>' + p.name + '</div></td>' +
+      '<td>' + emailCell + '</td>' +
       '<td>' + (p.phone||'-') + '</td>' +
       '<td>' + kakao + '</td>' +
       '<td>' + statusBadge + '</td>' +
@@ -702,6 +725,7 @@ function openEdit(code) {
   document.getElementById('edit-code').value   = p.code;
   document.getElementById('edit-name').value   = p.name;
   document.getElementById('edit-phone').value  = p.phone  || '';
+  document.getElementById('edit-email').value  = p.email  || '';
   document.getElementById('edit-shop').value   = p.shopUrl   || '';
   document.getElementById('edit-signup').value = p.signupUrl || '';
   document.getElementById('edit-kakao').value  = p.kakaoUrl  || '';
@@ -712,9 +736,16 @@ function openEdit(code) {
 function closeModal() { document.getElementById('edit-modal').classList.remove('open'); }
 function saveEdit() {
   var code = document.getElementById('edit-idx').value;
+  var email = (document.getElementById('edit-email').value || '').trim().toLowerCase();
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('이메일 형식이 올바르지 않습니다'); return; }
+  // Uniqueness (ignore self)
+  if (email && partnersCache.some(function(p){ return p.code !== code && (p.email||'').toLowerCase() === email; })) {
+    showToast('이미 다른 파트너가 사용 중인 이메일입니다'); return;
+  }
   db.collection('partners').doc(code).update({
     name:      document.getElementById('edit-name').value.trim(),
     phone:     document.getElementById('edit-phone').value.trim(),
+    email:     email,
     shopUrl:   document.getElementById('edit-shop').value.trim(),
     signupUrl: document.getElementById('edit-signup').value.trim(),
     kakaoUrl:  document.getElementById('edit-kakao').value.trim(),
