@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1E2278" />
+  <title>싸인다 파트너스 포털</title>
+  <meta name="description" content="싸인다 파트너스 전용 운영 포털 — 제도 안내, 자료실, 미션, 업무보고, 상품정보, 공지사항" />
+
+  <!-- Pretendard (Korean body) -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+
+  <!-- Display + Data fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="assets/css/portal.css" />
+
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- ===================== LOGIN SCREEN ===================== -->
+  <section id="login-screen" class="login-screen" aria-label="로그인">
+    <div class="login-bg">
+      <span class="shape shape-1"></span>
+      <span class="shape shape-2"></span>
+      <span class="shape shape-3"></span>
+      <span class="shape shape-4"></span>
+      <span class="grid-overlay"></span>
+    </div>
+
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="brand-mark">
+          <span class="brand-mark-dot"></span>
+          <span class="brand-mark-text">SSAINDA</span>
+        </div>
+        <p class="brand-sub">PARTNERS PORTAL</p>
+      </div>
+
+      <h1 class="login-title">싸인다 파트너스 포털</h1>
+      <p class="login-desc">등록된 이메일과 PIN으로 접속하세요</p>
+
+      <form id="login-form" class="login-form" autocomplete="off" novalidate>
+        <label class="field">
+          <span class="field-label">이메일 주소</span>
+          <input
+            id="login-email"
+            name="email"
+            type="email"
+            inputmode="email"
+            placeholder="partner@example.com"
+            autocomplete="username"
+            required
+          />
+          <span class="field-hint">파트너스 전산 페이지에 가입한 이메일</span>
+        </label>
+
+        <label class="field">
+          <span class="field-label">PIN 번호 (4자리)</span>
+          <input
+            id="login-pin"
+            name="pin"
+            type="password"
+            inputmode="numeric"
+            maxlength="4"
+            pattern="[0-9]{4}"
+            placeholder="••••"
+            autocomplete="current-password"
+            required
+          />
+          <span class="field-hint">본사에서 발급받은 4자리 PIN</span>
+        </label>
+
+        <p id="login-error" class="login-error" role="alert" aria-live="polite"></p>
+
+        <button type="submit" class="btn btn-cta btn-block">
+          <span>접속하기</span>
+          <i data-lucide="arrow-right"></i>
+        </button>
+
+        <p class="login-hint">
+          <i data-lucide="info"></i>
+          <span>아직 가입 전이신가요? 파트너스 전산 페이지에서 이메일 등록 후, PIN은 담당 매니저 또는 <a href="tel:15445292">1544-5292</a>로 문의하세요.</span>
+        </p>
+      </form>
+
+      <div class="login-foot">
+        <span>© (주)싸인다</span>
+        <span class="dot">·</span>
+        <span>info@ssainda.kr</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== APP SHELL ===================== -->
+  <div id="app" class="app" hidden>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar" aria-label="사이드바 메뉴">
+      <div class="sidebar-head">
+        <a href="#home" class="sidebar-brand" data-nav="home">
+          <span class="brand-mark-dot"></span>
+          <span>
+            <strong>SSAINDA</strong>
+            <em>Partners</em>
+          </span>
+        </a>
+        <button class="sidebar-close" type="button" aria-label="메뉴 닫기" data-sidebar-close>
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="메인 네비게이션">
+        <a href="#home" class="nav-item is-active" data-nav="home">
+          <i data-lucide="layout-dashboard"></i><span>홈</span>
+        </a>
+        <a href="#intro" class="nav-item" data-nav="intro">
+          <i data-lucide="book-open"></i><span>소개</span>
+        </a>
+        <a href="#library" class="nav-item" data-nav="library">
+          <i data-lucide="folder-down"></i><span>자료실</span>
+        </a>
+        <a href="#mission" class="nav-item" data-nav="mission">
+          <i data-lucide="target"></i><span>미션 가이드</span>
+        </a>
+        <a href="#report" class="nav-item" data-nav="report">
+          <i data-lucide="clipboard-check"></i><span>업무보고</span>
+        </a>
+        <a href="#products" class="nav-item" data-nav="products">
+          <i data-lucide="package"></i><span>상품정보</span>
+        </a>
+        <a href="#notices" class="nav-item" data-nav="notices">
+          <i data-lucide="bell"></i><span>공지사항</span>
+          <span class="nav-badge" id="notice-count" hidden>0</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="partner-chip">
+          <div class="avatar" id="sidebar-avatar">P</div>
+          <div class="partner-chip-info">
+            <strong id="sidebar-partner-name">—</strong>
+            <span id="sidebar-partner-code">—</span>
+          </div>
+        </div>
+        <button class="btn-ghost-light" type="button" id="logout-btn">
+          <i data-lucide="log-out"></i><span>로그아웃</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- BACKDROP (mobile) -->
+    <div class="sidebar-backdrop" data-sidebar-close hidden></div>
+
+    <!-- MAIN AREA -->
+    <div class="main">
+
+      <!-- HEADER -->
+      <header class="topbar">
+        <button class="icon-btn sidebar-open" type="button" aria-label="메뉴 열기" data-sidebar-open>
+          <i data-lucide="menu"></i>
+        </button>
+
+        <div class="topbar-search">
+          <i data-lucide="search"></i>
+          <input type="search" placeholder="자료, 상품, 공지 검색" id="topbar-search-input" />
+        </div>
+
+        <div class="topbar-actions">
+          <button class="icon-btn" type="button" aria-label="알림" data-nav="notices">
+            <i data-lucide="bell"></i>
+            <span class="dot-red" id="notice-dot" hidden></span>
+          </button>
+          <div class="partner-chip compact">
+            <div class="avatar" id="topbar-avatar">P</div>
+            <div class="partner-chip-info">
+              <strong id="topbar-partner-name">—</strong>
+              <span id="topbar-partner-grade">파트너스</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <main class="content" id="content">
+
+        <!-- ========== HOME ========== -->
+        <section class="view is-active" data-view="home">
+          <div class="hero">
+            <div class="hero-body">
+              <span class="eyebrow">PARTNERS PORTAL</span>
+              <h1 id="hero-greeting">안녕하세요, 파트너님</h1>
+              <p>오늘도 싸인다와 함께 성장하세요. 아래에서 이번 달 활동과 새 공지를 확인하세요.</p>
+              <div class="hero-cta">
+                <button class="btn btn-cta" data-nav="mission"><i data-lucide="target"></i> 이번 미션 확인</button>
+                <button class="btn btn-ghost-light" data-nav="library"><i data-lucide="folder-down"></i> 자료실 바로가기</button>
+              </div>
+            </div>
+            <div class="hero-shapes" aria-hidden="true">
+              <span class="blob b1"></span>
+              <span class="blob b2"></span>
+              <span class="blob b3"></span>
+              <span class="ring r1"></span>
+              <span class="ring r2"></span>
+            </div>
+          </div>
+
+          <!-- Metric cards -->
+          <div class="grid grid-4 stagger">
+            <article class="card metric metric-blue">
+              <div class="metric-head">
+                <span class="icon-bubble"><i data-lucide="award"></i></span>
+                <span class="metric-label">현재 등급</span>
+              </div>
+              <div class="metric-value"><span class="grade-badge">PN</span></div>
+              <div class="metric-progress">
+                <div class="progress"><span style="--val: 35%"></span></div>
+                <small>다음 등급(MD)까지 65% 남음</small>
+              </div>
+            </article>
+
+            <article class="card metric metric-gold">
+              <div class="metric-head">
+                <span class="icon-bubble"><i data-lucide="star"></i></span>
+                <span class="metric-label">이번 달 점수</span>
+              </div>
+              <div class="metric-value"><span class="num" data-count="280">0</span><em>/ 1,000</em></div>
+              <div class="metric-progress">
+                <div class="progress"><span style="--val: 28%"></span></div>
+                <small>MD 등급까지 120점 필요</small>
+              </div>
+            </article>
+
+            <article class="card metric metric-green">
+              <div class="metric-head">
+                <span class="icon-bubble"><i data-lucide="trending-up"></i></span>
+                <span class="metric-label">활동 RBV <span class="status-badge status-approved" title="본사 승인 완료"><i data-lucide="check"></i> 승인</span></span>
+              </div>
+              <div class="metric-value"><span class="num" data-count="8500000">0</span><em>원</em></div>
+              <div class="metric-progress">
+                <div class="progress"><span style="--val: 57%"></span></div>
+                <small>1,500만 목표까지 57%</small>
+              </div>
+            </article>
+
+            <article class="card metric metric-navy">
+              <div class="metric-head">
+                <span class="icon-bubble"><i data-lucide="users"></i></span>
+                <span class="metric-label">직소개 파트너</span>
+              </div>
+              <div class="metric-value"><span class="num" data-count="1">0</span><em>명</em></div>
+              <div class="metric-progress">
+                <div class="progress"><span style="--val: 33%"></span></div>
+                <small>PN 3명 육성까지 2명</small>
+              </div>
+            </article>
+          </div>
+
+          <!-- Quick access -->
+          <div class="section-head">
+            <h2>빠른 이동</h2>
+            <span class="section-sub">자주 쓰는 메뉴</span>
+          </div>
+          <div class="grid grid-3 stagger">
+            <a class="card quick" data-nav="mission">
+              <span class="icon-bubble tone-blue"><i data-lucide="target"></i></span>
+              <div>
+                <strong>오늘의 미션</strong>
+                <p>지금 뭐부터 할지 알려드릴게요</p>
+              </div>
+              <i class="chev" data-lucide="chevron-right"></i>
+            </a>
+            <a class="card quick" data-nav="library">
+              <span class="icon-bubble tone-gold"><i data-lucide="folder-down"></i></span>
+              <div>
+                <strong>콘텐츠 킷</strong>
+                <p>바로 쓰는 카톡·SNS 템플릿</p>
+              </div>
+              <i class="chev" data-lucide="chevron-right"></i>
+            </a>
+            <a class="card quick" data-nav="report">
+              <span class="icon-bubble tone-green"><i data-lucide="clipboard-check"></i></span>
+              <div>
+                <strong>업무보고 작성</strong>
+                <p>이번 주 활동 기록하기</p>
+              </div>
+              <i class="chev" data-lucide="chevron-right"></i>
+            </a>
+          </div>
+
+          <!-- Latest notices preview -->
+          <div class="section-head">
+            <h2>최근 공지</h2>
+            <a class="link-more" data-nav="notices">전체 보기 <i data-lucide="arrow-right"></i></a>
+          </div>
+          <div class="card">
+            <ul class="notice-list compact" id="home-notice-list">
+              <li class="empty">공지를 불러오는 중…</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ========== INTRO ========== -->
+        <section class="view" data-view="intro">
+          <div class="hero hero-compact">
+            <div class="hero-body">
+              <span class="eyebrow">SECTION 01 · 소개</span>
+              <h1>싸인다 파트너스 제도</h1>
+              <p>사업자 NO · 사입 NO · 3PL NO · 리스크 제로. 가입 즉시 개인 쇼핑몰을 분양받고, 소비 기반 리워드 구조로 함께 성장합니다.</p>
+            </div>
+            <div class="hero-shapes" aria-hidden="true">
+              <span class="blob b1"></span>
+              <span class="blob b2"></span>
+              <span class="ring r1"></span>
+            </div>
+          </div>
+
+          <!-- Intro feature strip -->
+          <div class="grid grid-4 stagger">
+            <div class="card feat">
+              <span class="icon-bubble tone-navy"><i data-lucide="shield-check"></i></span>
+              <strong>사업자 NO</strong>
+              <p>사업자 등록 없이 시작</p>
+            </div>
+            <div class="card feat">
+              <span class="icon-bubble tone-blue"><i data-lucide="package-x"></i></span>
+              <strong>사입 NO</strong>
+              <p>재고 부담 없음</p>
+            </div>
+            <div class="card feat">
+              <span class="icon-bubble tone-gold"><i data-lucide="truck"></i></span>
+              <strong>3PL NO</strong>
+              <p>배송·물류는 본사가</p>
+            </div>
+            <div class="card feat">
+              <span class="icon-bubble tone-green"><i data-lucide="check-circle"></i></span>
+              <strong>리스크 제로</strong>
+              <p>소비 기반 합법 구조</p>
+            </div>
+          </div>
+
+          <!-- Grade system -->
+          <div class="section-head">
+            <h2>6단계 등급 체계</h2>
+            <span class="section-sub">소비 기반 RBV + 조직 육성 기준</span>
+          </div>
+          <div class="grid grid-3 stagger grade-grid">
+            <article class="card grade-card grade-vp">
+              <header><span class="grade-badge">VP</span><span class="grade-name">Vice President</span></header>
+              <div class="grade-stats">
+                <div><em>리워드P</em><strong>5%</strong></div>
+                <div><em>운영</em><strong>5.5%</strong></div>
+                <div><em>관리</em><strong>5.5%</strong></div>
+              </div>
+              <footer>활동 RBV 1억+ / DR 3명+ 육성</footer>
+            </article>
+            <article class="card grade-card grade-dr">
+              <header><span class="grade-badge">DR</span><span class="grade-name">Director</span></header>
+              <div class="grade-stats">
+                <div><em>리워드P</em><strong>5%</strong></div>
+                <div><em>운영</em><strong>4.75%</strong></div>
+                <div><em>관리</em><strong>4.75%</strong></div>
+              </div>
+              <footer>활동 RBV 5,000만+ / SV 3명+ 육성</footer>
+            </article>
+            <article class="card grade-card grade-sv">
+              <header><span class="grade-badge">SV</span><span class="grade-name">Supervisor</span></header>
+              <div class="grade-stats">
+                <div><em>리워드P</em><strong>5%</strong></div>
+                <div><em>운영</em><strong>4%</strong></div>
+                <div><em>관리</em><strong>4%</strong></div>
+              </div>
+              <footer>활동 RBV 2,500만+ / MD 3명+ 육성</footer>
+            </article>
+            <article class="card grade-card grade-md">
+              <header><span class="grade-badge">MD</span><span class="grade-name">Merchandiser</span></header>
+              <div class="grade-stats">
+                <div><em>리워드P</em><strong>5%</strong></div>
+                <div><em>운영</em><strong>3%</strong></div>
+                <div><em>관리</em><strong>3%</strong></div>
+              </div>
+              <footer>활동 RBV 1,500만+ / PN 3명+ 육성</footer>
+            </article>
+            <article class="card grade-card grade-pn is-start">
+              <header><span class="grade-badge">PN</span><span class="grade-name">Partner (시작)</span></header>
+              <div class="grade-stats">
+                <div><em>리워드P</em><strong>5%</strong></div>
+                <div><em>운영</em><strong>2%</strong></div>
+                <div><em>관리</em><strong>2%</strong></div>
+              </div>
+              <footer>파트너스 가입 시 자동 부여</footer>
+            </article>
+            <article class="card grade-card grade-bm">
+              <header><span class="grade-badge">BM</span><span class="grade-name">Basic Member</span></header>
+              <div class="grade-stats">
+                <div><em>리워드P</em><strong>5%</strong></div>
+                <div><em>운영</em><strong>0%</strong></div>
+                <div><em>관리</em><strong>0%</strong></div>
+              </div>
+              <footer>일반 회원 단계</footer>
+            </article>
+          </div>
+
+          <!-- Revenue structure -->
+          <div class="section-head">
+            <h2>수익 구조</h2>
+            <span class="section-sub">소비 → RBV → 리워드의 흐름</span>
+          </div>
+          <div class="grid grid-2">
+            <article class="card">
+              <h3 class="card-title"><i data-lucide="coins" class="i-accent"></i> RBV(리워드 기준값)란?</h3>
+              <p class="card-body">회원이 싸인다 마켓에서 상품을 구매하면 구매액의 일부가 <strong>RBV</strong>로 적립됩니다. 매월 RBV의 <strong>5%</strong>가 리워드 포인트로 자동 전환됩니다.</p>
+              <ul class="bullet-list">
+                <li><span class="dot-b"></span> 소비 발생 → RBV 적립</li>
+                <li><span class="dot-b"></span> 월별 5% 리워드 포인트 전환</li>
+                <li><span class="dot-b"></span> 누적 RBV는 등급 산정의 기준</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3 class="card-title"><i data-lucide="network" class="i-accent"></i> 운영 &amp; 관리기여보상</h3>
+              <p class="card-body">직접 소개한 회원의 <strong>Direct RBV</strong>에서 <strong>운영기여보상</strong>을, 하위 조직 전체의 <strong>Management RBV</strong>에서 <strong>관리기여보상</strong>을 수령합니다.</p>
+              <ul class="bullet-list">
+                <li><span class="dot-g"></span> 운영기여 = Direct RBV × 등급 비율</li>
+                <li><span class="dot-g"></span> 관리기여 = Management RBV × 등급 비율</li>
+                <li><span class="dot-g"></span> 등급이 오를수록 비율이 커짐</li>
+              </ul>
+            </article>
+          </div>
+
+          <!-- Roadmap -->
+          <div class="section-head">
+            <h2>4단계 수익 로드맵</h2>
+            <span class="section-sub">가입부터 자동화 구조까지</span>
+          </div>
+          <ol class="roadmap stagger">
+            <li class="card road-step">
+              <span class="step-num">01</span>
+              <div>
+                <strong>파트너스 가입 &amp; 쇼핑몰 분양</strong>
+                <p>300만원 스타트 패키지로 시작. 개인 쇼핑몰과 파트너 링크가 즉시 생성됩니다.</p>
+              </div>
+            </li>
+            <li class="card road-step">
+              <span class="step-num">02</span>
+              <div>
+                <strong>콘텐츠 킷 활용</strong>
+                <p>자료실에서 제공되는 카톡·SNS·카드뉴스 템플릿을 그대로 활용해 소개합니다.</p>
+              </div>
+            </li>
+            <li class="card road-step">
+              <span class="step-num">03</span>
+              <div>
+                <strong>실시간 리워드 적립</strong>
+                <p>연결된 회원이 구매하면 RBV가 적립되고 매월 5%가 리워드 포인트로 전환됩니다.</p>
+              </div>
+            </li>
+            <li class="card road-step">
+              <span class="step-num">04</span>
+              <div>
+                <strong>자동화 구조 완성</strong>
+                <p>회원과 파트너스가 늘어날수록 수익 구조가 스스로 확장되는 단계입니다.</p>
+              </div>
+            </li>
+          </ol>
+
+          <!-- Promotion note -->
+          <div class="card callout callout-gold">
+            <i data-lucide="sparkles"></i>
+            <div>
+              <strong>스타트 패키지 특별가 — 300만원</strong>
+              <p>정가 500만원 → 40% 특별 할인(사전 모집 한정). 100% RBV 즉시 적립, 월 15만P 리워드 자동 발생, 최대 300% 수령 가능.</p>
+            </div>
+          </div>
+
+          <!-- Legal note -->
+          <p class="legal-note">
+            <i data-lucide="shield"></i>
+            본 자료는 파트너스 내부 교육용입니다. 확정 수익·원금 보장 표현은 금지되며, 모든 보상은 실제 소비 실적 기반 RBV와 등급에 따라 산정됩니다.
+          </p>
+        </section>
+
+        <!-- ========== LIBRARY ========== -->
+        <section class="view" data-view="library">
+          <div class="hero hero-compact">
+            <div class="hero-body">
+              <span class="eyebrow">SECTION 02 · 자료실</span>
+              <h1>콘텐츠 허브</h1>
+              <p>미션별 콘텐츠 킷, 릴스 영상, 시즌 홍보 자료 등 파트너스 활동에 필요한 모든 자료를 다운로드하세요.</p>
+            </div>
+            <div class="hero-shapes" aria-hidden="true">
+              <span class="blob b1"></span>
+              <span class="blob b2"></span>
+            </div>
+          </div>
+
+          <div class="library-toolbar">
+            <div class="tabs" id="library-tabs" role="tablist">
+              <button class="tab is-active" data-cat="all">전체</button>
+            </div>
+            <div class="library-search">
+              <i data-lucide="search"></i>
+              <input type="search" placeholder="자료 검색" id="library-search-input" />
+            </div>
+          </div>
+
+          <div class="grid grid-3 stagger" id="library-grid">
+            <!-- filled by JS -->
+          </div>
+
+          <div class="empty-state" id="library-empty" hidden>
+            <i data-lucide="folder-down"></i>
+            <h3>해당 카테고리에 자료가 없습니다</h3>
+            <p><code>downloads/</code> 폴더에 파일을 추가하고 <code>data/library.json</code>에 항목을 등록하면 자동으로 나타납니다.</p>
+          </div>
+        </section>
+
+        <!-- ========== MISSION ========== -->
+        <section class="view" data-view="mission">
+          <div class="hero hero-compact">
+            <div class="hero-body">
+              <span class="eyebrow">SECTION 03 · 미션 가이드</span>
+              <h1>오늘 할 일 1가지</h1>
+              <p>SNS가 낯설어도 괜찮습니다. 미션을 하나씩 클리어하면서 자연스럽게 성장하세요.</p>
+            </div>
+            <div class="hero-shapes" aria-hidden="true">
+              <span class="blob b1"></span>
+              <span class="blob b2"></span>
+              <span class="ring r1"></span>
+            </div>
+          </div>
+
+          <!-- Progress summary -->
+          <div class="card mission-overview">
+            <div class="mission-overview-stat">
+              <em>완료 미션</em>
+              <strong><span id="mission-done-count">0</span><span class="mission-overview-sub">/<span id="mission-total-count">0</span></span></strong>
+            </div>
+            <div class="mission-overview-progress">
+              <div class="progress"><span id="mission-progress-bar" style="--val: 0%"></span></div>
+              <small id="mission-overview-hint">첫 미션부터 시작하세요</small>
+            </div>
+            <button class="btn btn-ghost-reset" type="button" id="mission-reset">
+              <i data-lucide="rotate-ccw"></i> 진행 상태 초기화
+            </button>
+          </div>
+
+          <div class="grid grid-2 stagger mission-grid" id="mission-grid">
+            <!-- filled by JS -->
+          </div>
+
+          <p class="legal-note"><i data-lucide="info"></i> 미션은 추후 초급/중급/고급으로 확장될 예정입니다.</p>
+        </section>
+
+        <!-- ========== REPORT ========== -->
+        <section class="view" data-view="report">
+          <div class="hero hero-compact">
+            <div class="hero-body">
+              <span class="eyebrow">SECTION 04 · 업무보고</span>
+              <h1>이번 달 활동 보고</h1>
+              <p>제출한 보고는 <strong>본사 승인</strong>을 거쳐 대시보드에 반영됩니다. 총 1,000점 만점 기준입니다.</p>
+            </div>
+            <div class="hero-shapes" aria-hidden="true">
+              <span class="blob b1"></span>
+              <span class="blob b2"></span>
+            </div>
+          </div>
+
+          <!-- Approval flow explainer -->
+          <div class="flow-steps stagger">
+            <div class="flow-step">
+              <span class="flow-num">1</span>
+              <div>
+                <strong>파트너 제출</strong>
+                <p>활동 내역 입력 후 제출</p>
+              </div>
+            </div>
+            <i class="flow-sep" data-lucide="chevron-right"></i>
+            <div class="flow-step">
+              <span class="flow-num">2</span>
+              <div>
+                <strong>본사 확인</strong>
+                <p>전산 데이터와 자동 매칭</p>
+              </div>
+            </div>
+            <i class="flow-sep" data-lucide="chevron-right"></i>
+            <div class="flow-step">
+              <span class="flow-num">3</span>
+              <div>
+                <strong>승인 · 반영</strong>
+                <p>대시보드 점수 업데이트</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-2">
+            <article class="card">
+              <h3 class="card-title"><i data-lucide="bar-chart-3" class="i-accent"></i> 내 현재 점수 <span class="status-badge status-approved"><i data-lucide="check"></i> 승인된 항목만</span></h3>
+              <div class="score-panel">
+                <div class="score-big"><span class="num" data-count="280">0</span><em>/ 1,000</em></div>
+                <div class="progress"><span style="--val: 28%"></span></div>
+                <ul class="score-breakdown">
+                  <li><span>활동 RBV</span><strong>160 <em>/400</em></strong><span class="status-badge status-approved"><i data-lucide="check"></i></span></li>
+                  <li><span>직소개 파트너</span><strong>70 <em>/350</em></strong><span class="status-badge status-approved"><i data-lucide="check"></i></span></li>
+                  <li><span>미팅 참석</span><strong>20 <em>/80</em></strong><span class="status-badge status-approved"><i data-lucide="check"></i></span></li>
+                  <li><span>회원 미팅</span><strong>15 <em>/70</em></strong><span class="status-badge status-pending"><i data-lucide="clock"></i></span></li>
+                  <li><span>SNS 활동</span><strong>10 <em>/50</em></strong><span class="status-badge status-pending"><i data-lucide="clock"></i></span></li>
+                  <li><span>업무보고 제출</span><strong>5 <em>/50</em></strong><span class="status-badge status-approved"><i data-lucide="check"></i></span></li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="card">
+              <h3 class="card-title"><i data-lucide="edit-3" class="i-accent"></i> 이번 달 업무보고 제출</h3>
+              <form class="report-form" id="report-form-demo" onsubmit="event.preventDefault();">
+                <label class="field">
+                  <span class="field-label">활동 RBV (원)</span>
+                  <input type="number" min="0" step="10000" placeholder="예: 8500000" />
+                  <span class="field-hint">본사 전산 데이터와 대조하여 승인됩니다.</span>
+                </label>
+                <label class="field">
+                  <span class="field-label">미팅 참석 횟수 (본사 정기)</span>
+                  <input type="number" min="0" placeholder="0" />
+                </label>
+                <label class="field">
+                  <span class="field-label">회원 1:1 상담 횟수</span>
+                  <input type="number" min="0" placeholder="0" />
+                </label>
+                <label class="field">
+                  <span class="field-label">SNS 게시물 수</span>
+                  <input type="number" min="0" placeholder="0" />
+                </label>
+                <label class="field">
+                  <span class="field-label">주간 업무보고 제출 횟수 (최대 4)</span>
+                  <input type="number" min="0" max="4" placeholder="0" />
+                </label>
+                <button type="submit" class="btn btn-primary btn-block" disabled>
+                  <i data-lucide="send"></i> 제출 (연동 준비 중)
+                </button>
+                <p class="form-hint">※ Google Sheets 연동 · 전산 데이터 매칭 작업 진행 중</p>
+              </form>
+            </article>
+          </div>
+
+          <!-- Submission history -->
+          <div class="section-head">
+            <h2>제출 이력</h2>
+            <span class="section-sub">최근 제출한 업무보고의 승인 상태</span>
+          </div>
+          <div class="card">
+            <table class="report-table">
+              <thead>
+                <tr>
+                  <th>제출일</th>
+                  <th>기간</th>
+                  <th>활동 RBV</th>
+                  <th>미팅</th>
+                  <th>회원 미팅</th>
+                  <th>SNS</th>
+                  <th>상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="num-cell">2026-04-15</td>
+                  <td>2026년 4월</td>
+                  <td class="num-cell">8,500,000</td>
+                  <td class="num-cell">3</td>
+                  <td class="num-cell">6</td>
+                  <td class="num-cell">10</td>
+                  <td><span class="status-badge status-pending"><i data-lucide="clock"></i> 승인 대기</span></td>
+                </tr>
+                <tr>
+                  <td class="num-cell">2026-03-16</td>
+                  <td>2026년 3월</td>
+                  <td class="num-cell">6,200,000</td>
+                  <td class="num-cell">4</td>
+                  <td class="num-cell">5</td>
+                  <td class="num-cell">12</td>
+                  <td><span class="status-badge status-approved"><i data-lucide="check"></i> 승인</span></td>
+                </tr>
+                <tr>
+                  <td class="num-cell">2026-02-18</td>
+                  <td>2026년 2월</td>
+                  <td class="num-cell">4,800,000</td>
+                  <td class="num-cell">2</td>
+                  <td class="num-cell">3</td>
+                  <td class="num-cell">8</td>
+                  <td><span class="status-badge status-rejected"><i data-lucide="x"></i> 반려</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="legal-note" style="margin-top: 16px;">
+              <i data-lucide="info"></i>
+              <span>반려된 보고는 본사에서 사유를 안내드립니다. 전산 데이터와 RBV 값이 일치하지 않으면 자동으로 보류됩니다.</span>
+            </p>
+          </div>
+        </section>
+
+        <!-- ========== PRODUCTS ========== -->
+        <section class="view" data-view="products">
+          <div class="hero hero-compact">
+            <div class="hero-body">
+              <span class="eyebrow">SECTION 05 · 상품정보</span>
+              <h1>런칭 제품 학습 허브</h1>
+              <p>제품 특징, 홍보 포인트, 참고 영상을 한 곳에서 확인하세요.</p>
+            </div>
+            <div class="hero-shapes" aria-hidden="true">
+              <span class="blob b1"></span>
+              <span class="blob b2"></span>
+            </div>
+          </div>
+
+          <div class="tabs" id="products-tabs" role="tablist">
+            <button class="tab is-active" data-pcat="all">전체</button>
+          </div>
+
+          <div class="grid grid-3 stagger" id="products-grid">
+            <!-- filled by JS -->
+          </div>
+
+          <div class="empty-state" id="products-empty">
+            <i data-lucide="package"></i>
+            <h3>상품 정보 준비 중</h3>
+            <p><code>data/products.json</code>에 상품을 추가하면 자동으로 나타납니다. 제품별 유튜브 영상 임베드와 자료 다운로드가 지원됩니다.</p>
+          </div>
+        </section>
+
+        <!-- ========== PRODUCT MODAL ========== -->
+        <div class="product-modal" id="product-modal" hidden>
+          <button class="product-modal-backdrop" data-modal-close aria-label="닫기"></button>
+          <article class="product-modal-card">
+            <button class="product-modal-x" data-modal-close aria-label="닫기">
+              <i data-lucide="x"></i>
+            </button>
+            <div id="product-modal-body"></div>
+          </article>
+        </div>
+
+        <!-- ========== NOTICES ========== -->
+        <section class="view" data-view="notices">
+          <div class="hero hero-compact">
+            <div class="hero-body">
+              <span class="eyebrow">SECTION 06 · 공지사항</span>
+              <h1>본사 공지</h1>
+              <p>프로모션, 정책 변경, 이벤트, 시즌 캠페인 등 중요한 소식을 확인하세요.</p>
+            </div>
+            <div class="hero-shapes" aria-hidden="true">
+              <span class="blob b1"></span>
+              <span class="blob b2"></span>
+              <span class="ring r1"></span>
+            </div>
+          </div>
+
+          <div class="filter-bar" id="notice-filter">
+            <button class="chip is-active" data-filter="all">전체</button>
+            <button class="chip" data-filter="프로모션">프로모션</button>
+            <button class="chip" data-filter="정책">정책</button>
+            <button class="chip" data-filter="이벤트">이벤트</button>
+            <button class="chip" data-filter="시즌">시즌</button>
+            <button class="chip" data-filter="신제품">신제품</button>
+            <button class="chip" data-filter="운영">운영</button>
+          </div>
+
+          <div class="card">
+            <ul class="notice-list" id="notice-list">
+              <li class="empty">공지를 불러오는 중…</li>
+            </ul>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- FOOTER -->
+      <footer class="footer">
+        <div class="footer-inner">
+          <div class="footer-brand">
+            <strong>(주)싸인다</strong>
+            <span>SSAINDA Partners Portal</span>
+          </div>
+          <div class="footer-info">
+            <p><i data-lucide="map-pin"></i> 경기도 하남시 미사강변중앙로214, 레이크더타워 7층</p>
+            <p><i data-lucide="phone"></i> 1544-5292</p>
+            <p><i data-lucide="mail"></i> info@ssainda.kr</p>
+          </div>
+          <div class="footer-meta">
+            <span>© 2026 SSAINDA Co., Ltd.</span>
+            <span>Partners Portal v1.0</span>
+          </div>
+        </div>
+      </footer>
+
+    </div><!-- /.main -->
+  </div><!-- /#app -->
+
+  <!-- ===================== TOAST ===================== -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden>
+    <i data-lucide="check-circle"></i>
+    <span id="toast-msg">완료</span>
+  </div>
+
+  <!-- ===================== SCRIPTS ===================== -->
+  <script src="assets/js/portal.js"></script>
+</body>
+</html>

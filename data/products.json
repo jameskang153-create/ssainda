@@ -1,0 +1,9 @@
+{
+  "categories": [
+    { "id": "all", "label": "전체" },
+    { "id": "health", "label": "건강식품" },
+    { "id": "beauty", "label": "뷰티" },
+    { "id": "life", "label": "생활용품" }
+  ],
+  "products": []
+}

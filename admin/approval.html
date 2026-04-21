@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>업무보고 승인 · SSAINDA Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/portal.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Admin-specific tweaks */
+    body { background: var(--bg); }
+    .admin-wrap { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; }
+    .admin-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .admin-head h1 { font-size: 26px; font-weight: 700; }
+    .admin-head .eyebrow { margin-bottom: 6px; display: inline-block; }
+    .admin-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--text-2); font-size: 13px; font-weight: 500;
+    }
+    .admin-back:hover { color: var(--navy); }
+    .admin-back [data-lucide] { width: 16px; height: 16px; }
+
+    .paste-zone {
+      width: 100%;
+      min-height: 140px;
+      padding: 14px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      border: 1.5px dashed var(--border-strong);
+      border-radius: var(--r);
+      background: var(--bg);
+      resize: vertical;
+      outline: none;
+      transition: border-color var(--dur), background var(--dur);
+    }
+    .paste-zone:focus { border-color: var(--blue); border-style: solid; background: #fff; }
+    .paste-zone::placeholder { color: var(--text-3); }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+
+    .match-summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .match-summary > div {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 12px 14px;
+    }
+    .match-summary em {
+      display: block;
+      font-size: 11px; font-weight: 600; letter-spacing: .06em;
+      color: var(--text-2); font-style: normal; text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .match-summary strong {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px; font-weight: 700;
+    }
+
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .admin-table th {
+      text-align: left; font-size: 11px; font-weight: 700;
+      color: var(--text-2); text-transform: uppercase; letter-spacing: .06em;
+      padding: 10px 10px; border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .admin-table td {
+      padding: 12px 10px; border-bottom: 1px solid var(--border);
+    }
+    .admin-table tbody tr:hover { background: var(--bg); }
+    .admin-table .num-cell { font-family: 'JetBrains Mono', monospace; }
+    .admin-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .mini-btn {
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px; font-weight: 600;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 4px;
+      transition: background var(--dur), color var(--dur), border-color var(--dur);
+    }
+    .mini-btn [data-lucide] { width: 12px; height: 12px; }
+    .mini-btn.ok { color: var(--green); border-color: rgba(57,181,74,.3); }
+    .mini-btn.ok:hover { background: rgba(57,181,74,.08); }
+    .mini-btn.no { color: var(--red); border-color: rgba(237,28,36,.3); }
+    .mini-btn.no:hover { background: rgba(237,28,36,.08); }
+
+    .spec-note {
+      background: linear-gradient(135deg, #FFFBEA 0%, #FFF5CC 100%);
+      border: 1px solid rgba(255,194,0,.35);
+      border-radius: var(--r);
+      padding: 16px 20px;
+      color: #6B4A00;
+      display: flex; gap: 12px; align-items: flex-start;
+      margin-bottom: 24px;
+    }
+    .spec-note [data-lucide] { color: #B18400; flex-shrink: 0; }
+    .spec-note strong { display: block; margin-bottom: 4px; font-size: 14px; }
+    .spec-note p { margin: 0; font-size: 13px; line-height: 1.6; }
+    .spec-note code { font-family: 'JetBrains Mono', monospace; background: rgba(0,0,0,0.05); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="admin-wrap">
+  <a href="../portal.html" class="admin-back"><i data-lucide="arrow-left"></i> 포털로 돌아가기</a>
+
+  <div class="admin-head">
+    <div>
+      <span class="eyebrow">SSAINDA ADMIN · 업무보고 승인</span>
+      <h1>업무보고 승인 관리</h1>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-ghost-light" style="color:var(--text-2); background:#fff; border-color:var(--border);">
+        <i data-lucide="download"></i> Sheets 새로고침
+      </button>
+    </div>
+  </div>
+
+  <!-- Spec/TODO note -->
+  <div class="spec-note">
+    <i data-lucide="alert-triangle"></i>
+    <div>
+      <strong>⚠ 개발 진행 중 — 파서 대기</strong>
+      <p>
+        전산 페이지의 실제 복붙 포맷을 받으면 <code>parsePaste()</code> 함수를 구현하여
+        붙여넣은 텍스트와 제출된 업무보고를 자동 매칭합니다.
+        현재는 UI 구조와 수동 승인 플로우만 준비된 상태입니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- Paste & match -->
+  <article class="card" style="margin-bottom: 24px;">
+    <h3 class="card-title"><i data-lucide="clipboard-paste" class="i-accent"></i> 전산 페이지 데이터 붙여넣기</h3>
+    <p class="card-body" style="margin-bottom: 10px; color: var(--text-2);">
+      파트너스 전산 페이지에서 이번 달 RBV 집계 데이터를 복사해 아래에 붙여넣으세요.
+      일치하는 파트너의 업무보고는 자동 승인됩니다.
+    </p>
+    <textarea id="paste-area" class="paste-zone" placeholder="여기에 전산 페이지 데이터를 붙여넣으세요.&#10;&#10;예시 (실제 포맷은 업데이트 예정):&#10;이메일               활동RBV          기간&#10;kim@example.com     8,500,000        2026-04"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-match"><i data-lucide="wand"></i> 자동 매칭 실행</button>
+      <button class="btn" id="btn-clear" style="background:#fff; color:var(--text-2); border:1px solid var(--border);"><i data-lucide="x"></i> 지우기</button>
+    </div>
+    <div class="match-summary">
+      <div><em>파싱된 행</em><strong id="sum-parsed">—</strong></div>
+      <div><em>매칭 성공</em><strong id="sum-matched" style="color:var(--green)">—</strong></div>
+      <div><em>값 불일치</em><strong id="sum-mismatch" style="color:var(--red)">—</strong></div>
+      <div><em>미등록 파트너</em><strong id="sum-orphan" style="color:var(--text-3)">—</strong></div>
+    </div>
+  </article>
+
+  <!-- Pending reports table -->
+  <div class="section-head">
+    <h2>승인 대기 업무보고</h2>
+    <span class="section-sub">자동 매칭 후 수동 검토 · 승인</span>
+  </div>
+
+  <article class="card" style="padding: 8px 16px;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>제출일</th>
+          <th>파트너</th>
+          <th>이메일</th>
+          <th>기간</th>
+          <th>신고 RBV</th>
+          <th>전산 RBV</th>
+          <th>일치</th>
+          <th>액션</th>
+        </tr>
+      </thead>
+      <tbody id="pending-rows">
+        <tr>
+          <td class="num-cell">2026-04-15</td>
+          <td>김파트너</td>
+          <td>kim@ssainda.test</td>
+          <td>2026-04</td>
+          <td class="num-cell">8,500,000</td>
+          <td class="num-cell"><span style="color:var(--text-3)">—</span></td>
+          <td><span class="status-badge status-pending">대기</span></td>
+          <td>
+            <div class="admin-actions">
+              <button class="mini-btn ok"><i data-lucide="check"></i> 승인</button>
+              <button class="mini-btn no"><i data-lucide="x"></i> 반려</button>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="num-cell">2026-04-15</td>
+          <td>이파트너</td>
+          <td>lee@ssainda.test</td>
+          <td>2026-04</td>
+          <td class="num-cell">12,400,000</td>
+          <td class="num-cell"><span style="color:var(--text-3)">—</span></td>
+          <td><span class="status-badge status-pending">대기</span></td>
+          <td>
+            <div class="admin-actions">
+              <button class="mini-btn ok"><i data-lucide="check"></i> 승인</button>
+              <button class="mini-btn no"><i data-lucide="x"></i> 반려</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </article>
+
+  <!-- Integration checklist -->
+  <div class="section-head" style="margin-top: 32px;">
+    <h2>연동 체크리스트</h2>
+    <span class="section-sub">Google Sheets · Apps Script</span>
+  </div>
+  <div class="card">
+    <ul class="bullet-list">
+      <li><span class="dot-b"></span> Apps Script 웹훅 엔드포인트 준비 (POST: 제출 기록, PATCH: status 변경)</li>
+      <li><span class="dot-b"></span> Sheets 컬럼: <code style="font-family:'JetBrains Mono',monospace; font-size:12px; background:var(--bg); padding:1px 6px; border-radius:4px;">timestamp | email | partner_code | period | rbv | meeting | member_meeting | sns | report_count | total_score | grade | status | approved_at | approved_by</code></li>
+      <li><span class="dot-g"></span> 전산 페이지 복붙 포맷 확정 후 <code style="font-family:'JetBrains Mono',monospace; font-size:12px; background:var(--bg); padding:1px 6px; border-radius:4px;">parsePaste()</code> 구현</li>
+      <li><span class="dot-g"></span> 자동 매칭 성공 시 status="approved" 자동 반영</li>
+      <li><span class="dot-g"></span> 파트너 포털 대시보드는 status="approved"인 최신 행만 사용</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  // Icons
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+
+  /**
+   * parsePaste(text) — 전산 페이지에서 복사된 텍스트를 파싱.
+   * 실제 복붙 포맷이 확정되면 구현. 현재는 placeholder.
+   *
+   * 기대 출력: [{ email, rbv, period }]
+   */
+  function parsePaste(text) {
+    // TODO: 전산 페이지 포맷 확정 후 구현
+    // 예상 로직:
+    //   - 줄 단위로 split
+    //   - 탭/공백/콤마 기준 컬럼 분리
+    //   - 이메일 정규식으로 이메일 컬럼 탐지
+    //   - 숫자(콤마 포함) 정규식으로 RBV 컬럼 탐지
+    //   - YYYY-MM 패턴으로 기간 탐지
+    return [];
+  }
+
+  document.getElementById('btn-match')?.addEventListener('click', () => {
+    const text = document.getElementById('paste-area').value;
+    const rows = parsePaste(text);
+    document.getElementById('sum-parsed').textContent = rows.length || '—';
+    document.getElementById('sum-matched').textContent = '—';
+    document.getElementById('sum-mismatch').textContent = '—';
+    document.getElementById('sum-orphan').textContent = '—';
+    if (!rows.length) {
+      alert('파서가 아직 구현되지 않았습니다. 전산 페이지 복붙 포맷이 확정되면 활성화됩니다.');
+    }
+  });
+  document.getElementById('btn-clear')?.addEventListener('click', () => {
+    document.getElementById('paste-area').value = '';
+    ['sum-parsed','sum-matched','sum-mismatch','sum-orphan'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
+  });
+</script>
+
+</body>
+</html>

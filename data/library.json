@@ -1,0 +1,105 @@
+{
+  "categories": [
+    { "id": "content-kit", "label": "미션 콘텐츠 킷", "icon": "image" },
+    { "id": "reels", "label": "릴스 영상", "icon": "film" },
+    { "id": "seasonal", "label": "시즌 홍보", "icon": "sparkles" },
+    { "id": "template", "label": "기타 템플릿", "icon": "file-text" }
+  ],
+  "files": [
+    {
+      "id": "ck-001",
+      "category": "content-kit",
+      "title": "카카오톡 지인용 첫인사 템플릿",
+      "description": "처음 연락할 친구·지인에게 복붙해서 바로 보낼 수 있는 메시지",
+      "filename": "content-kit/kakao-greeting-v1.txt",
+      "type": "txt",
+      "size": "2 KB",
+      "date": "2026-04-15",
+      "mission": "MISSION 2"
+    },
+    {
+      "id": "ck-002",
+      "category": "content-kit",
+      "title": "인스타그램 피드/스토리 카피",
+      "description": "신제품 소개용 인스타 캡션 10종 (해시태그 포함)",
+      "filename": "content-kit/insta-captions-v1.txt",
+      "type": "txt",
+      "size": "4 KB",
+      "date": "2026-04-12",
+      "mission": "MISSION 3"
+    },
+    {
+      "id": "ck-003",
+      "category": "content-kit",
+      "title": "블로그/카페 소개글 샘플",
+      "description": "긴 글 기반 파트너스 소개 템플릿 3종",
+      "filename": "content-kit/blog-intro-v1.docx",
+      "type": "docx",
+      "size": "28 KB",
+      "date": "2026-04-10",
+      "mission": "MISSION 3"
+    },
+    {
+      "id": "rl-001",
+      "category": "reels",
+      "title": "신제품 홍보 릴스 v1",
+      "description": "15초 세로 영상 · 인스타/릴스/쇼츠 업로드용",
+      "filename": "reels/launch-reel-v1.mp4",
+      "type": "mp4",
+      "size": "8.4 MB",
+      "date": "2026-04-18",
+      "thumbnail": null
+    },
+    {
+      "id": "rl-002",
+      "category": "reels",
+      "title": "파트너스 제도 소개 릴스",
+      "description": "30초 세로 영상 · 제도 개요 소개용",
+      "filename": "reels/intro-reel-v1.mp4",
+      "type": "mp4",
+      "size": "14 MB",
+      "date": "2026-04-05",
+      "thumbnail": null
+    },
+    {
+      "id": "sn-001",
+      "category": "seasonal",
+      "title": "봄 시즌 카드뉴스 세트",
+      "description": "파스텔 톤 봄 캠페인 카드뉴스 5장 세트 (PNG)",
+      "filename": "seasonal/spring-cardnews-2026.zip",
+      "type": "zip",
+      "size": "6.2 MB",
+      "date": "2026-04-10"
+    },
+    {
+      "id": "sn-002",
+      "category": "seasonal",
+      "title": "봄 시즌 홍보 릴스",
+      "description": "30초 봄 캠페인 영상 · SNS 업로드 최적화",
+      "filename": "seasonal/spring-promo-reel.mp4",
+      "type": "mp4",
+      "size": "11 MB",
+      "date": "2026-04-10"
+    },
+    {
+      "id": "tp-001",
+      "category": "template",
+      "title": "유튜브 쇼츠 스크립트",
+      "description": "60초 이내 쇼츠 제작용 스크립트 템플릿 5종",
+      "filename": "content-kit/shorts-script-v1.docx",
+      "type": "docx",
+      "size": "18 KB",
+      "date": "2026-04-08"
+    },
+    {
+      "id": "tp-002",
+      "category": "template",
+      "title": "카드뉴스 텍스트 템플릿",
+      "description": "카드뉴스 제작용 카피 · 제목/본문 구성 가이드",
+      "filename": "content-kit/cardnews-copy-v1.docx",
+      "type": "docx",
+      "size": "22 KB",
+      "date": "2026-04-06"
+    }
+  ]
+}
